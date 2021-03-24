@@ -1,22 +1,27 @@
-// handle channels in this file- wrap chatscreen in tab/tabpanels
-// how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
 import React, {useEffect, useState} from 'react';
-import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Button, Tabs, Tab, TabList, TabPanels, TabPanel} from "@chakra-ui/react";
+import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, useToast} from "@chakra-ui/react";
 
 import {nanoid} from 'nanoid';
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
+// TODO: some console logs kept for debugging purposes, will need to remove before final submission.
 
-
+/**
+ * ChannelWrapper manages channels. It takes in the chat token to generate a client, 
+ * which is used for channel management.
+ * @param chatToken the token used to create the Chat Client 
+ * @returns A React Component that displays the full chat window
+ */
 export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.Element {
   const [client, setClient] = useState<Client>();
+    // May use this as loading indicator in UI.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName} = useCoveyAppState();
+  const toast = useToast();
 
   const addChannel = (newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
@@ -26,7 +31,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       if (newChannel.uniqueName === currentTownID) {
         setMainChannelJoined(true);
       }
-      console.log("Channel already Added.");
+      console.log(`The Channel ${newChannel.friendlyName} has already been added.`);
     }
   }
 
@@ -36,7 +41,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } else {
       console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
       const response = await channelToJoin.join();
-      channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
+      channelToJoin.sendMessage(`${userName} has joined ${channelToJoin.friendlyName}`);
       addChannel(response);
     }
   }
@@ -47,8 +52,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         uniqueName: channelID,
         friendlyName: channelFriendlyName,
       });
+      toast({
+        title: 'Channel Created',
+        description: `The Channel, ${channelFriendlyName} has been created!`,
+        status: 'success'
+      });
 
-      console.log(`${createdChannel.friendlyName} has been created!`)
       return createdChannel;
     }
     throw Error(`Something went wrong, client error. Please come back later.`);
@@ -59,8 +68,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels((await client.getSubscribedChannels()).items);
 
       client.on('channelJoined', async (joinedChannel: Channel) => {
-        // const channelMessages = await joinedChannel.getMessages();
-        console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occured`);
+        toast({
+            title: 'Channel Joined',
+            description: `You have joined ${joinedChannel.friendlyName}`,
+            status: 'success'
+          });
       });
     }
     try {
@@ -75,7 +87,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         await joinChannel(created);
         setMainChannelJoined(true);
       } catch {
-        throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
+        toast({
+            title: 'Channel Error',
+            description: `Unable to create or join channel for ${currentTownFriendlyName}`,
+            status: 'error'
+          });
       }
     }
   }
@@ -85,12 +101,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const created = await createChannel(nanoid(), nanoid(5));
       await joinChannel(created);
     } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
+        toast({
+            title: 'Channel Error',
+            description: `Unable to create or join private channel`,
+            status: 'error'
+          });
     }
   }
 
-  // UseEffect-- on mounting, gets the chat client object.
-  // could also attempt to join main room chat here.
+  // UseEffect-- on mounting, gets the chat client object using chatToken.
   useEffect(() => {
     let isMounted = true;
     const logIn = async () => {
