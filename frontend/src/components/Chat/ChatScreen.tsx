@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState, createRef} from 'react';
 import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
@@ -24,6 +24,8 @@ export default function ChatScreen(): JSX.Element {
 
   const { currentTownID, currentTownFriendlyName, userName } = useCoveyAppState()
   const messagesEndRef = useRef(null);
+  const chatContainer = createRef<HTMLDivElement>();
+
 
   // TODO We should probably create a client to communicate to the Chat Backend
   const getToken = async (email: string) => {
@@ -31,6 +33,8 @@ export default function ChatScreen(): JSX.Element {
     const { data } = response;
     return data.token;
   };
+
+
 
 
   const handleMessageAdded = (messageToAdd: Message) => {
@@ -60,25 +64,22 @@ export default function ChatScreen(): JSX.Element {
 
   },[handleMessageAdded, messages]);
 
+/*
+Reference: https://stackoverflow.com/questions/37620694/how-to-scroll-to-bottom-in-react
+ */
+  const scrollToBottom = () => {
+    chatContainer.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // const scrollToBottom = () => {
-  //   const scrollHeight = scrollDiv.current.scrollHeight;
-  //   const height = scrollDiv.current.clientHeight;
-  //   const maxScrollTop = scrollHeight - height;
-  //   scrollDiv.current.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
-  // };
 
-  // const scrollToBottom = () => {
-  //   messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-  // }
-
-  // useEffect(scrollToBottom, [messages]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages])
 
 
   const sendMessage =() => {
     console.log(messages)
     if (text && String(text).trim()) {
-      // this.setState({ loading: true });
       setLoading(true)
       // channel && channel.sendMessage(text);
 
@@ -86,11 +87,11 @@ export default function ChatScreen(): JSX.Element {
         console.log(text)
         channel.sendMessage(text)
       }
-      // channel?.sendMessage(text)
-      // this.setState({ text: "", loading: false });
+
       setText("");
       setLoading(false);
     }
+
   }
 
   const loginToChat = useCallback(async () => {
@@ -119,7 +120,6 @@ export default function ChatScreen(): JSX.Element {
     client.on("channelJoined", async (channelToJoin) => {
       // getting list of all messages since this is an existing channel
       const mes = await channelToJoin.getMessages();
-      console.log('channeljoined has occured')
 
 
       const mes2 : Message[] = mes.items.map((message: Message) => ({
@@ -129,9 +129,7 @@ export default function ChatScreen(): JSX.Element {
           author: message.state.author
         }
       }))
-      console.log(mes);
       setMessages(mes2)
-      // setText('player joined')
 
     });
 
@@ -162,30 +160,37 @@ export default function ChatScreen(): JSX.Element {
   }, [channel, currentTownFriendlyName, currentTownID, joinChannel, messages, userName])
 
 
-
-  // useEffect( () => {
-  //   loginToChat()
-  // }, [loginToChat]);
-
+  const enterToSend = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if(event.key === 'Enter'){
+      sendMessage();
+    }
+  }
 
   return (
     <>
       <Stack>
-        <div ref={messagesEndRef}>
-      <Box maxH="500px" overflowY="scroll">
-        {messages.map((message) =>
+        <div>
+          <Box maxH="500px" overflowY="scroll">
+            {messages.map((message) =>
           <div key={message.state.sid}>
             <b>{message.state.author}</b>:{message.state.body}
+            <div ref={chatContainer}/>
           </div>)
-        }
-      </Box>
-      <Input w="90%" autoFocus name="name" placeholder=""
+            }
+          </Box>
+        </div>
+        <div>
+        <Input w="90%"
+             autoFocus name="name"
+             placeholder="Type a message"
              onChange={(event) => setText(event.target.value)}
              value={text}
-             onKeyDown={sendMessage}
-      />
-      <Button w="10%" onClick={sendMessage} disabled={!channel || !text}>Send</Button>
-      <Button onClick={loginToChat} >Login to Chat</Button>
+             onKeyDown={(e) => enterToSend(e)}
+        />
+        <div>
+          <Button w="10%" onClick={sendMessage} disabled={!channel || !text}>Send</Button>
+        </div>
+        <Button onClick={loginToChat} >Login to Chat</Button>
         </div>
       </Stack>
     </>
