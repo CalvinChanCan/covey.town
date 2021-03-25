@@ -38,6 +38,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const joinChannel = async (channelToJoin: Channel) => {
     if (channelToJoin.status === "joined") {
       console.log(`Channel, ${channelToJoin.friendlyName} already joined.`);
+      if(channelToJoin.uniqueName === currentTownID){
+        addChannel(channelToJoin);
+      }
     } else {
       console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
       const response = await channelToJoin.join();
@@ -65,7 +68,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   const mainChannelLogIn = async () => {
     if (client) {
-      setChannels((await client.getSubscribedChannels()).items);
+      // setChannels((await client.getSubscribedChannels()).items);
 
       client.on('channelJoined', async (joinedChannel: Channel) => {
         toast({
