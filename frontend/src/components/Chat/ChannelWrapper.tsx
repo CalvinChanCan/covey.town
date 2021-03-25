@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import Client from 'twilio-chat';
+import {Client, User} from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, useToast} from "@chakra-ui/react";
 
@@ -20,7 +20,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, myPlayerID} = useCoveyAppState();
   const toast = useToast();
 
   const addChannel = (newChannel: Channel) => {
@@ -36,6 +36,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }
 
   const joinChannel = async (channelToJoin: Channel) => {
+    console.log(await client?.getSubscribedUsers());
     if (channelToJoin.status === "joined") {
       console.log(`Channel, ${channelToJoin.friendlyName} already joined.`);
       if(channelToJoin.uniqueName === currentTownID){
@@ -44,7 +45,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } else {
       console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
       const response = await channelToJoin.join();
-      channelToJoin.sendMessage(`${userName} has joined ${channelToJoin.friendlyName}`);
       addChannel(response);
     }
   }
@@ -55,12 +55,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         uniqueName: channelID,
         friendlyName: channelFriendlyName,
       });
-      toast({
-        title: 'Channel Created',
-        description: `The Channel, ${channelFriendlyName} has been created!`,
-        status: 'success'
-      });
-
       return createdChannel;
     }
     throw Error(`Something went wrong, client error. Please come back later.`);
@@ -71,11 +65,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       // setChannels((await client.getSubscribedChannels()).items);
 
       client.on('channelJoined', async (joinedChannel: Channel) => {
-        toast({
-            title: 'Channel Joined',
-            description: `You have joined ${joinedChannel.friendlyName}`,
-            status: 'success'
-          });
+        joinedChannel.sendMessage(`${userName} has joined ${joinedChannel.friendlyName}`, userName);
       });
     }
     try {
@@ -118,8 +108,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     const logIn = async () => {
       setLoading(true);
       try {
-
         const newClient = await Client.create(chatToken);
+        // get user associated with client and update friendlyName
+        const user = await newClient.getUser(myPlayerID);
+        await user.updateFriendlyName(userName);
         if (isMounted) setClient(newClient);
         setLoading(false);
       } catch (error) {
@@ -130,7 +122,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     return () => {
       isMounted = false
     };
-  }, [chatToken, currentTownFriendlyName]);
+  }, [chatToken, currentTownFriendlyName, myPlayerID, userName]);
 
 
   const renderTabs = (channels).map(c => {
