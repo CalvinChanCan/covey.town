@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {createRef, useCallback, useEffect, useRef, useState} from 'react';
 import {Channel} from 'twilio-chat/lib/channel';
 import {Box, Button, Input, Stack, Tabs, Tab, TabList} from "@chakra-ui/react";
 import {Message} from 'twilio-chat/lib/message';
@@ -14,6 +14,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   const {currentTownID, currentTownFriendlyName, userName, apiClient, socket} = useCoveyAppState();
   const messagesEndRef = useRef(null);
+  const chatContainer = createRef<HTMLDivElement>();
 
   // running 5 times?
   const handleMessageAdded = useCallback((messageToAdd: Message) => {
@@ -51,6 +52,14 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     }
   };
 
+  const scrollToBottom = () => {
+    chatContainer.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages])
+
 
   return (
     <>
@@ -60,6 +69,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
             {messages.map((message) =>
               <div key={message.sid}>
                 <b>{message.author}</b>:{message.body}
+                <div ref={chatContainer}/>
               </div>)
             }
           </Box>
