@@ -101,7 +101,7 @@ export default class CoveyTownController {
     theSession.videoToken = await this._videoClient.getTokenForTown(this._coveyTownID, newPlayer.id);
 
     // Create a chat token for this user to join this town
-    theSession.chatToken = await this._chatClient.getToken(newPlayer.userName);
+    theSession.chatToken = await this._chatClient.getToken(newPlayer.id);
 
     // Notify other players that this player has joined
     this._listeners.forEach((listener) => listener.onPlayerJoined(newPlayer));
