@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io-client';
+import Client from "twilio-chat";
 import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
 
@@ -27,5 +28,6 @@ export type CoveyAppState = {
   nearbyPlayers: NearbyPlayers,
   emitMovement: (location: UserLocation) => void,
   socket: Socket | null,
+  chatClient: Client | null,
   apiClient: TownsServiceClient,
 };

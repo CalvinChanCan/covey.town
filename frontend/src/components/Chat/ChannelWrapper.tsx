@@ -11,12 +11,12 @@ import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 
 
-export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.Element {
+export default function ChannelWrapper(): JSX.Element {
   const [client, setClient] = useState<Client>();
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, chatClient} = useCoveyAppState();
 
   const addChannel = (newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
@@ -36,14 +36,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } else {
       console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
       const response = await channelToJoin.join();
-      channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
+      await channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
       addChannel(response);
     }
   }
 
   const createChannel = async (channelID: string, channelFriendlyName: string) => {
-    if (client) {
-      const createdChannel = await client.createChannel({
+    if (chatClient) {
+      const createdChannel = await chatClient.createChannel({
         uniqueName: channelID,
         friendlyName: channelFriendlyName,
       });
@@ -55,19 +55,24 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }
 
   const mainChannelLogIn = async () => {
-    if (client) {
-      setChannels((await client.getSubscribedChannels()).items);
 
-      client.on('channelJoined', async (joinedChannel: Channel) => {
-        // const channelMessages = await joinedChannel.getMessages();
-        console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occured`);
-      });
+    if (chatClient) {
+      console.log((await chatClient.getSubscribedChannels()).items);
+
+      setChannels((await chatClient.getSubscribedChannels()).items);
+
+      // client.on('channelJoined', async (joinedChannel: Channel) => {
+      //   // const channelMessages = await joinedChannel.getMessages();
+      //   console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occured`);
+      // });
     }
+
     try {
-      if (client) {
-        const mainChannel = await client.getChannelByUniqueName(currentTownID);
+      if (chatClient) {
+        const mainChannel = await chatClient.getChannelByUniqueName(currentTownID);
         await joinChannel(mainChannel);
         setMainChannelJoined(true);
+        console.log('channel joined')
       }
     } catch {
       try {
@@ -97,8 +102,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setLoading(true);
       try {
 
-        const newClient = await Client.create(chatToken);
-        if (isMounted) setClient(newClient);
+        // const newClient = await Client.create(chatToken);
+        if (isMounted && chatClient) setClient(chatClient);
         setLoading(false);
       } catch (error) {
         throw new Error(`Unable to create client for ${currentTownFriendlyName}: \n${error}`);
@@ -108,8 +113,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     return () => {
       isMounted = false
     };
-  }, [chatToken, currentTownFriendlyName]);
-
+  }, [chatClient, currentTownFriendlyName, mainChannelLogIn]);
 
   const renderTabs = (channels).map(c => {
     const {friendlyName, uniqueName} = c;

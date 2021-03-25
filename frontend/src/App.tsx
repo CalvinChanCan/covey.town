@@ -49,6 +49,7 @@ function defaultAppState(): CoveyAppState {
     sessionToken: '',
     userName: '',
     socket: null,
+    chatClient: null,
     currentLocation: {
       x: 0, y: 0, rotation: 'front', moving: false,
     },
@@ -69,6 +70,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
     nearbyPlayers: state.nearbyPlayers,
     userName: state.userName,
     socket: state.socket,
+    chatClient: state.chatClient,
     emitMovement: state.emitMovement,
     apiClient: state.apiClient,
   };
@@ -104,6 +106,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
       nextState.userName = update.data.userName;
       nextState.emitMovement = update.data.emitMovement;
       nextState.socket = update.data.socket;
+      nextState.chatClient = update.data.chatClient;
       nextState.players = update.data.players;
       break;
     case 'addPlayer':
@@ -142,6 +145,8 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
       break;
     case 'disconnect':
       state.socket?.disconnect();
+      console.log('shutting down chat Client');
+      state.chatClient?.shutdown();
       return defaultAppState();
     default:
       throw new Error('Unexpected state request');
@@ -198,44 +203,46 @@ async function GameController(initData: TownJoinResponse,
     console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
   });
 
-  const joinChannel = async (channelToJoin: Channel) => {
-    if (channelToJoin.status === "joined") {
-      console.log(`Channel, ${channelToJoin.friendlyName} already joined.`);
-    } else {
-      console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
-      const response = await channelToJoin.join();
-      console.log(response);
-    }
-  }
 
-  const createChannel = async (channelID: string, channelFriendlyName: string) => {
-    if (chatClient) {
-      const createdChannel = await chatClient.createChannel({
-        uniqueName: channelID,
-        friendlyName: channelFriendlyName,
-      });
 
-      console.log(`${createdChannel.friendlyName} has been created!`)
-      return createdChannel;
-    }
-    throw Error(`Something went wrong, client error. Please come back later.`);
-  }
 
-  try {
-    if (chatClient) {
-      const mainChannel = await chatClient.getChannelByUniqueName(video.coveyTownID);
-      await joinChannel(mainChannel);
+  // const joinChannel = async (channelToJoin: Channel) => {
+  //   if (channelToJoin.status === "joined") {
+  //     console.log(`Channel, ${channelToJoin.friendlyName} already joined.`);
+  //   } else {
+  //     console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
+  //     const response = await channelToJoin.join();
+  //     console.log(response);
+  //   }
+  // }
+  //
+  // const createChannel = async (channelID: string, channelFriendlyName: string) => {
+  //   if (chatClient) {
+  //     const createdChannel = await chatClient.createChannel({
+  //       uniqueName: channelID,
+  //       friendlyName: channelFriendlyName,
+  //     });
+  //
+  //     console.log(`${createdChannel.friendlyName} has been created!`)
+  //     return createdChannel;
+  //   }
+  //   throw Error(`Something went wrong, client error. Please come back later.`);
+  // }
 
-    }
-  } catch {
-    try {
-      const created = await createChannel(video.coveyTownID, roomName);
-      await joinChannel(created);
-
-    } catch {
-      throw new Error(`Unable to create or join channel for ${roomName}`);
-    }
-  }
+  // try {
+  //   if (chatClient) {
+  //     const mainChannel = await chatClient.getChannelByUniqueName(video.coveyTownID);
+  //     await joinChannel(mainChannel);
+  //   }
+  // } catch {
+  //   try {
+  //     const created = await createChannel(video.coveyTownID, roomName);
+  //     await joinChannel(created);
+  //
+  //   } catch {
+  //     throw new Error(`Unable to create or join channel for ${roomName}`);
+  //   }
+  // }
 
   dispatchAppUpdate({
     action: 'doConnect',
@@ -290,7 +297,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           gap={4}
         >
           <GridItem colSpan={1}><WorldMap/></GridItem>
-          <GridItem colSpan={1}><ChannelWrapper chatToken={chatToken}/></GridItem>
+          <GridItem colSpan={1}><ChannelWrapper/></GridItem>
         </Grid>
         <VideoOverlay preferredMode="fullwidth"/>
       </div>
