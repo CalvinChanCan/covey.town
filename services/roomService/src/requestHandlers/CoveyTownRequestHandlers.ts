@@ -146,10 +146,9 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
     };
   }
 
-  // Ideally we want to use the covey town ID to create the channel with. But we first need to create the town first so
-  // we can store the SID of the channel.
-  const res = await TwilioChat.getInstance().createChannel(requestData.friendlyName, nanoid());
-  const newTown = townsStore.createTown(requestData.friendlyName, requestData.isPubliclyListed, res.sid);
+  const newTown = townsStore.createTown(requestData.friendlyName, requestData.isPubliclyListed);
+  const response = await TwilioChat.getInstance().createChannel(requestData.friendlyName, newTown.coveyTownID);
+  newTown.channelID = response.sid;
 
   return {
     isOK: true,
@@ -163,6 +162,12 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 export async function townDeleteHandler(requestData: TownDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
   const success = townsStore.deleteTown(requestData.coveyTownID, requestData.coveyTownPassword);
+  if (success) {
+    const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
+    if (channelID) {
+      await TwilioChat.getInstance().deleteChannel(channelID);
+    }
+  }
   return {
     isOK: success,
     response: {},
@@ -173,6 +178,14 @@ export async function townDeleteHandler(requestData: TownDeleteRequest): Promise
 export async function townUpdateHandler(requestData: TownUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
   const success = townsStore.updateTown(requestData.coveyTownID, requestData.coveyTownPassword, requestData.friendlyName, requestData.isPubliclyListed);
+
+  if (success) {
+    const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
+    if (channelID && requestData.friendlyName) {
+      await TwilioChat.getInstance().updateChannel(channelID, requestData.friendlyName);
+    }
+  }
+
   return {
     isOK: success,
     response: {},
