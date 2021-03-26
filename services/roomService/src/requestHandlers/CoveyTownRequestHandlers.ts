@@ -1,9 +1,11 @@
 import assert from 'assert';
 import { Socket } from 'socket.io';
+import {nanoid} from 'nanoid';
 import Player from '../types/Player';
 import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
+import TwilioChat from '../lib/TwilioChat';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -143,7 +145,12 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
       message: 'FriendlyName must be specified',
     };
   }
-  const newTown = townsStore.createTown(requestData.friendlyName, requestData.isPubliclyListed);
+
+  // Ideally we want to use the covey town ID to create the channel with. But we first need to create the town first so
+  // we can store the SID of the channel.
+  const res = await TwilioChat.getInstance().createChannel(requestData.friendlyName, nanoid());
+  const newTown = townsStore.createTown(requestData.friendlyName, requestData.isPubliclyListed, res.sid);
+
   return {
     isOK: true,
     response: {
