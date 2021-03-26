@@ -43,7 +43,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } else {
       console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
       const response = await channelToJoin.join();
-      channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
+      await channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
       addChannel(response);
     }
   }
@@ -74,7 +74,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         console.log(`Invited to channel ${channel.friendlyName}`);
         // Join the channel that you were invited to
         await channel.join();
-        channel.sendMessage(`${userName} joined the chat for ${channel.friendlyName}`);
+        await channel.sendMessage(`${userName} joined the chat for ${channel.friendlyName}`);
         setChannels(oldChannels =>[...oldChannels, channel])
       });
 
@@ -145,11 +145,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   const createPrivateChannelFromMenu = async (currentPlayer: string, playerToPM: Player) => {
     try {
-      const created = await createChannel(nanoid(), `Private Message with ${playerToPM.userName}`);
-      await joinChannel(created);
+      const channel = await createChannel(nanoid(), `Private Message with ${playerToPM.userName}`);
+      await joinChannel(channel);
 
       try {
-        await created.invite(playerToPM.userName)
+        await channel.invite(playerToPM.userName)
       } catch(e){
         throw new Error(`${e}`);
       }
