@@ -86,13 +86,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         setMainChannelJoined(true);
       }
     } catch {
-      try {
-        const created = await createChannel(currentTownID, currentTownFriendlyName);
-        await joinChannel(created);
-        setMainChannelJoined(true);
-      } catch {
-        throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
-      }
+      throw new Error(`Unable to join channel for ${currentTownFriendlyName}`);
     }
   }
 
