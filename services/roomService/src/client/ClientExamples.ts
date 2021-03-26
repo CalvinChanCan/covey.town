@@ -1,5 +1,5 @@
-import TwilioChat from '../lib/TwilioChat';
 import {nanoid} from 'nanoid';
+import TwilioChat from '../lib/TwilioChat';
 
 // It's OK to do console.logs here :)
 /* eslint-disable no-console */
