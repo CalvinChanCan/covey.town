@@ -17,6 +17,6 @@ server.listen(process.env.PORT || 8081, () => {
   console.log(`Listening on ${address.port}`);
   if (process.env.DEMO_TOWN_ID) {
     CoveyTownsStore.getInstance()
-      .createTown(process.env.DEMO_TOWN_ID, false, 'DEMO_ID');
+      .createTown(process.env.DEMO_TOWN_ID, false);
   }
 });
