@@ -48,6 +48,10 @@ export default class CoveyTownController {
     this._friendlyName = value;
   }
 
+  get channelID(): string {
+    return this._channelID;
+  }
+
   get coveyTownID(): string {
     return this._coveyTownID;
   }
@@ -69,6 +73,8 @@ export default class CoveyTownController {
 
   private readonly _coveyTownID: string;
 
+  private readonly _channelID: string;
+
   private _friendlyName: string;
 
   private readonly _townUpdatePassword: string;
@@ -77,12 +83,13 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
-  constructor(friendlyName: string, isPubliclyListed: boolean) {
+  constructor(friendlyName: string, isPubliclyListed: boolean, channelID: string) {
     this._coveyTownID = (process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID());
     this._capacity = 50;
     this._townUpdatePassword = nanoid(24);
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
+    this._channelID = channelID;
   }
 
   /**

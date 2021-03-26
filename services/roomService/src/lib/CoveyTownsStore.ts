@@ -1,5 +1,6 @@
 import CoveyTownController from './CoveyTownController';
 import { CoveyTownList } from '../CoveyTypes';
+import TwilioChat from './TwilioChat';
 
 function passwordMatches(provided: string, expected: string): boolean {
   if (provided === expected) {
@@ -37,8 +38,8 @@ export default class CoveyTownsStore {
       }));
   }
 
-  createTown(friendlyName: string, isPubliclyListed: boolean): CoveyTownController {
-    const newTown = new CoveyTownController(friendlyName, isPubliclyListed);
+  createTown(friendlyName: string, isPubliclyListed: boolean, channelID: string): CoveyTownController {
+    const newTown = new CoveyTownController(friendlyName, isPubliclyListed, channelID);
     this._towns.push(newTown);
     return newTown;
   }
@@ -51,6 +52,7 @@ export default class CoveyTownsStore {
           return false;
         }
         existingTown.friendlyName = friendlyName;
+        TwilioChat.getInstance().updateChannel(existingTown.channelID, friendlyName);
       }
       if (makePublic !== undefined) {
         existingTown.isPubliclyListed = makePublic;
@@ -65,6 +67,7 @@ export default class CoveyTownsStore {
     if (existingTown && passwordMatches(coveyTownPassword, existingTown.townUpdatePassword)) {
       this._towns = this._towns.filter(town => town !== existingTown);
       existingTown.disconnectAllPlayers();
+      TwilioChat.getInstance().deleteChannel(existingTown.channelID);
       return true;
     }
     return false;
