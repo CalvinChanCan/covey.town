@@ -6,7 +6,6 @@ import {MessageInstance} from 'twilio/lib/rest/chat/v2/service/channel/message';
 import {InviteContext} from 'twilio/lib/rest/chat/v2/service/channel/invite';
 import Client from 'twilio-chat';
 import IChatClient from './IChatClient';
-import CoveyTownsStore from "./CoveyTownsStore";
 
 dotenv.config();
 
@@ -84,7 +83,7 @@ export default class TwilioChat implements IChatClient {
     // @ts-ignore this is missing from the typedef, but valid as per the docs...
     token.identity = JSON.stringify(identity);
 
-    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID, });
+    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID });
 
     token.addGrant(chatGrant);
 
