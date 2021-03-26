@@ -7,9 +7,8 @@ export default interface IChatClient {
    * Issue a secret token on behalf of the video service that the client will be able to use
    * to connect to the video room specified.
    *
-   * @param coveyTownID The town that the client should be able to connect to
-   * @param clientIdentity The identity of the client; the video service will map a client
-   *                      that connects with the returned token back to this client identifier
+   * @param playerID
+   * @param userName
    */
-  getToken(clientIdentity: string): Promise<string>;
+  getToken(playerID: string, userName: string): Promise<string>;
 }

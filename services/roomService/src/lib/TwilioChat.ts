@@ -4,7 +4,9 @@ import assert from 'assert';
 import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
 import {MessageInstance} from 'twilio/lib/rest/chat/v2/service/channel/message';
 import {InviteContext} from 'twilio/lib/rest/chat/v2/service/channel/invite';
+import Client from 'twilio-chat';
 import IChatClient from './IChatClient';
+import CoveyTownsStore from "./CoveyTownsStore";
 
 dotenv.config();
 
@@ -66,18 +68,23 @@ export default class TwilioChat implements IChatClient {
 
   /**
    * Authorizes a user connecting to the chat
-   * @param clientIdentity
+
    */
-  async getToken(clientIdentity: string): Promise<string> {
+  async getToken(playerID:string, userName:string): Promise<string> {
     const token = new Twilio.jwt.AccessToken(
       this._twilioAccountSid, this._twilioApiKeySID, this._twilioApiKeySecret, {
         ttl: MAX_ALLOWED_SESSION_DURATION,
       },
     );
+    const identity = {
+      playerID,
+      userName,
+    };
     // eslint-disable-next-line
     // @ts-ignore this is missing from the typedef, but valid as per the docs...
-    token.identity = clientIdentity;
-    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID});
+    token.identity = JSON.stringify(identity);
+
+    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID, });
 
     token.addGrant(chatGrant);
 
