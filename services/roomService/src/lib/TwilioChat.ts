@@ -67,7 +67,6 @@ export default class TwilioChat implements IChatClient {
 
   /**
    * Authorizes a user connecting to the chat
-
    */
   async getToken(playerID:string, userName:string): Promise<string> {
     const token = new Twilio.jwt.AccessToken(
@@ -94,13 +93,6 @@ export default class TwilioChat implements IChatClient {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
       .create({friendlyName, uniqueName});
-
-    // This update option adds the Autopilot Bot
-    await this._twilioClient.chat.services(this._twilioChatServiceSID)
-      .update({
-        postWebhookUrl: this._twilioAutopilotURL,
-        webhookMethod: 'POST',
-      });
     return response;
   }
 
@@ -164,6 +156,17 @@ export default class TwilioChat implements IChatClient {
       .channels
       .create({friendlyName, uniqueName, type:'private' });
 
+    await this._twilioClient.chat.services(this._twilioChatServiceSID)
+      .channels(response.sid)
+      .webhooks
+      .create({
+        type: 'webhook',
+        configuration: {
+          filters: ['onMessageSent'],
+          method: 'POST',
+          url: this._twilioAutopilotURL,
+        },
+      });
     return response;
   }
 }
