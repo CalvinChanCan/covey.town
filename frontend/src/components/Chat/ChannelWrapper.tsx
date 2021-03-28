@@ -128,7 +128,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       isMounted = false
     };
 
-  }, [chatToken, currentTownFriendlyName]);
+  }, [ chatToken, currentTownFriendlyName]);
 
 
   const renderTabs = (channels).map(channel => {
@@ -198,7 +198,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
                     onClick={() =>{createPrivateChannelFromMenu(myPlayerID, player)}}>{player.userName}</MenuItemOption>
   ));
 
-  // Logs Work
+  // Logs Work - This could be susceptible to massive chat logs since.
   const getTownChatLogs = async () => {
     if(client) {
 
@@ -224,7 +224,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   };
 
-
   return (
     <>
       <Tabs index={tabIndex} onChange={handleTabsChange}>
@@ -235,7 +234,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
-
       <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
         Channel</Button>
       <Button onClick={getTownChatLogs} isDisabled={!mainChannelJoined}>Logs</Button>
