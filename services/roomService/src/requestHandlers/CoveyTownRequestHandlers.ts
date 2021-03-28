@@ -250,9 +250,24 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
         },
       };
 
-      const response = await TwilioChat.getInstance().createChannel(JSON.stringify(friendlyName), nanoid(5));
+      const channels = controller.getPrivateChannels();
 
-      controller.addPrivateChannel(response.sid);
+      const duplicate = channels.find((channel) => {
+        const channelName = JSON.parse(channel.friendlyName);
+        console.log(channelName);
+        return channelName.players.player1 === player1.userName && channelName.players.player2 === player2.userName ||
+          channelName.players.player1 === player2.userName && channelName.players.player2 === player1.userName;
+      });
+
+      if (duplicate){
+        return {
+          isOK: false,
+          message: 'Private channel already exists',
+        };
+      }
+
+      const response = await TwilioChat.getInstance().createChannel(JSON.stringify(friendlyName), nanoid(5));
+      controller.addPrivateChannel(response);
 
       const identity1 = {
         playerID: player1.id,
@@ -291,16 +306,28 @@ export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): P
   if (requestData.playerID.length === 0) {
     return {
       isOK: false,
-      message: 'Usernames cannot be empty',
+      message: 'Username cannot be empty',
     };
   }
 
   const controller = CoveyTownsStore.getInstance().getControllerForTown(requestData.coveyTownID);
   if (controller) {
+
+    const channels = controller.getHelpChannels();
     const targetPlayer = controller.players.find(player => player.id === requestData.playerID);
-    const response = await TwilioChat.getInstance().createChannelWithBot('Help', nanoid(5));
+
 
     if (targetPlayer) {
+      const duplicate = channels.find((channel) => channel.friendlyName === targetPlayer.userName);
+      if (duplicate){
+        return {
+          isOK: false,
+          message: 'Help channel already exists for the player',
+        };
+      }
+
+      const response = await TwilioChat.getInstance().createChannelWithBot(targetPlayer.userName, nanoid(5));
+      controller.addHelpChannel(response);
       const identity = {
         playerID: targetPlayer.id,
         userName: targetPlayer.userName,

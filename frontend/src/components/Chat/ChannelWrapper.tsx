@@ -4,7 +4,21 @@ import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuList, MenuOptionGroup, MenuItemOption, MenuDivider} from "@chakra-ui/react";
+import {
+  Button,
+  Tabs,
+  Tab,
+  TabList,
+  TabPanels,
+  TabPanel,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuOptionGroup,
+  MenuItemOption,
+  MenuDivider,
+  useToast
+} from "@chakra-ui/react";
 
 
 import {nanoid} from 'nanoid';
@@ -23,6 +37,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
   const [tabIndex, setTabIndex] = React.useState(0)
+  const toast = useToast();
 
   const handleTabsChange = useCallback((index) => {
     setTabIndex(index)
@@ -90,8 +105,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         coveyTownID: currentTownID,
       })
       setTabIndex(channels.length)
-    } catch {
-      throw new Error(`Unable to create channel with a bot`);
+    } catch (err) {
+      toast({
+        title: 'Unable to create help chat',
+        description: err.toString(),
+        status: 'error'
+      })
     }
   }
 
@@ -165,11 +184,19 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Private messaging work
 
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
-    await apiClient.createPrivateChatChannel({
-      currentPlayerID,
-      otherPlayerID: playerToPM.id,
-      coveyTownID: currentTownID
-    });
+    try {
+      await apiClient.createPrivateChatChannel({
+        currentPlayerID,
+        otherPlayerID: playerToPM.id,
+        coveyTownID: currentTownID
+      });
+    } catch (err) {
+      toast({
+        title: 'Unable to connect to create private chat',
+        description: err.toString(),
+        status: 'error'
+      })
+    }
   };
 
 
