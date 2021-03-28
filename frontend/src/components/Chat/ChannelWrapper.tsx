@@ -1,6 +1,6 @@
 // handle channels in this file- wrap chatscreen in tab/tabpanels
 // how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
@@ -8,6 +8,7 @@ import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuL
 
 
 import {nanoid} from 'nanoid';
+import {use} from "matter";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -20,7 +21,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
+  const [tabIndex, setTabIndex] = React.useState(0)
+
+  const handleTabsChange = useCallback((index) => {
+    setTabIndex(index)
+  },[]);
 
   const addChannel = (newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
@@ -48,19 +54,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }
 
-  const createChannel = async (channelID: string, channelFriendlyName: string) => {
-    if (client) {
-      const createdChannel = await client.createChannel({
-        uniqueName: channelID,
-        friendlyName: channelFriendlyName,
-      });
-
-      console.log(`${createdChannel.friendlyName} has been created!`)
-      return createdChannel;
-    }
-    throw Error(`Something went wrong, client error. Please come back later.`);
-  }
-
   const mainChannelLogIn = async () => {
     if (client) {
       // setChannels((await client.getSubscribedChannels()).items);
@@ -74,7 +67,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         console.log(`Invited to channel ${channel.friendlyName}`);
         // Join the channel that you were invited to
         await channel.join();
-        await channel.sendMessage(`${userName} joined the chat for ${channel.friendlyName}`);
+        await channel.sendMessage(`${userName} joined the chat`);
         setChannels(oldChannels =>[...oldChannels, channel])
       });
 
@@ -90,12 +83,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }
 
-  const createPrivateChannel = async () => {
+  const createPrivateChannelWithBot = async () => {
     try {
-      const created = await createChannel(nanoid(), nanoid(5));
-      await joinChannel(created);
+      await apiClient.createChatBotChannel({
+        playerID: myPlayerID,
+        coveyTownID: currentTownID,
+      })
+      setTabIndex(channels.length)
     } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
+      throw new Error(`Unable to create channel with a bot`);
     }
   }
 
@@ -122,20 +118,45 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }, [chatToken, currentTownFriendlyName]);
 
 
-  const renderTabs = (channels).map(c => {
-    const {friendlyName, uniqueName} = c;
-    return (
-      <Tab key={uniqueName}>
-        {friendlyName}
-      </Tab>
-    )
+  const renderTabs = (channels).map(channel => {
+    const {friendlyName, uniqueName} = channel;
+
+    let tabName;
+    try {
+      const { players: {
+        player1,
+        player2
+      }} = JSON.parse(friendlyName);
+
+      if (player1 !== userName) {
+        tabName = player1;
+      } else {
+        tabName = player2;
+      }
+      return (
+        <Tab key={uniqueName}>
+          {`Private Message with ${tabName}`}
+        </Tab>
+      )
+    } catch {
+      return friendlyName === 'Help' ? (
+        <Tab key={uniqueName}>
+          {friendlyName}
+        </Tab>
+      ) : (
+        <Tab key={uniqueName}>
+          Town Chat
+        </Tab>
+      );
+    }
+
   });
 
-  const renderTabScreens = (channels).map(c => {
-    const {uniqueName} = c;
+  const renderTabScreens = (channels).map(channel => {
+    const {uniqueName} = channel;
     return (
       <TabPanel p={50} key={uniqueName}>
-        <ChatScreen channel={c}/>
+        <ChatScreen channel={channel}/>
       </TabPanel>
     )
   });
@@ -143,20 +164,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // Private messaging work
 
-  const createPrivateChannelFromMenu = async (currentPlayer: string, playerToPM: Player) => {
-    try {
-      const channel = await createChannel(nanoid(), `Private Message with ${playerToPM.userName}`);
-      await joinChannel(channel);
-
-      try {
-        await channel.invite(playerToPM.userName)
-      } catch(e){
-        throw new Error(`${e}`);
-      }
-
-    } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
-    }
+  const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
+    await apiClient.createPrivateChatChannel({
+      currentPlayerID,
+      otherPlayerID: playerToPM.id,
+      coveyTownID: currentTownID
+    });
   };
 
 
@@ -174,7 +187,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   return (
     <>
-      <Tabs>
+      <Tabs index={tabIndex} onChange={handleTabsChange}>
         <TabList>
           {renderTabs}
         </TabList>
@@ -184,7 +197,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       </Tabs>
       <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
         Channel</Button>
-      <Button onClick={createPrivateChannel}>Start New Chat</Button>
+      <Button onClick={createPrivateChannelWithBot}>Help</Button>
 
       <Menu>
         <MenuButton as={Button}>
