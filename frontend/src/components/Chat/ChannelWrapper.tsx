@@ -8,6 +8,7 @@ import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuL
 
 
 import {nanoid} from 'nanoid';
+import {use} from "matter";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -20,7 +21,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
 
   const addChannel = (newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
@@ -74,7 +75,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         console.log(`Invited to channel ${channel.friendlyName}`);
         // Join the channel that you were invited to
         await channel.join();
-        await channel.sendMessage(`${userName} joined the chat for ${channel.friendlyName}`);
+        await channel.sendMessage(`${userName} joined the chat`);
         setChannels(oldChannels =>[...oldChannels, channel])
       });
 
@@ -122,20 +123,41 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }, [chatToken, currentTownFriendlyName]);
 
 
-  const renderTabs = (channels).map(c => {
-    const {friendlyName, uniqueName} = c;
-    return (
-      <Tab key={uniqueName}>
-        {friendlyName}
-      </Tab>
-    )
+  const renderTabs = (channels).map(channel => {
+    const {friendlyName, uniqueName} = channel;
+
+    let tabName;
+    try {
+      const { players: {
+        player1,
+        player2
+      }} = JSON.parse(friendlyName);
+
+      if (player1 !== userName) {
+        tabName = player1;
+      } else {
+        tabName = player2;
+      }
+      return (
+        <Tab key={uniqueName}>
+          {`Private Message with ${tabName}`}
+        </Tab>
+      )
+    } catch {
+      return (
+        <Tab key={uniqueName}>
+          Town Chat
+        </Tab>
+      )
+    }
+
   });
 
-  const renderTabScreens = (channels).map(c => {
-    const {uniqueName} = c;
+  const renderTabScreens = (channels).map(channel => {
+    const {uniqueName} = channel;
     return (
       <TabPanel p={50} key={uniqueName}>
-        <ChatScreen channel={c}/>
+        <ChatScreen channel={channel}/>
       </TabPanel>
     )
   });
@@ -144,23 +166,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Private messaging work
 
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
-    try {
-      const channel = await createChannel(nanoid(), `Private Message with ${playerToPM.userName}`);
-      await joinChannel(channel);
-
-      try {
-        const identity = {
-          playerID: playerToPM.id,
-          userName: playerToPM.userName,
-        }
-        await channel.invite(JSON.stringify(identity))
-      } catch(e){
-        throw new Error(`${e}`);
-      }
-
-    } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
-    }
+    await apiClient.createPrivateChatChannel({
+      currentPlayerID,
+      otherPlayerID: playerToPM.id,
+      coveyTownID: currentTownID
+    });
   };
 
 

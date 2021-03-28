@@ -4,6 +4,7 @@ import io from 'socket.io';
 import { Server } from 'http';
 import { StatusCodes } from 'http-status-codes';
 import {
+  privateChatCreateHandler,
   townCreateHandler, townDeleteHandler,
   townJoinHandler,
   townListHandler,
@@ -97,6 +98,24 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         friendlyName: req.body.friendlyName,
         coveyTownPassword: req.body.coveyTownPassword,
       });
+      res.status(StatusCodes.OK)
+        .json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({
+          message: 'Internal server error, please see log in server for more details',
+        });
+    }
+  });
+
+
+  /**
+   * Create a private chat channel
+   */
+  app.post('/chat', BodyParser.json(), async (req, res) => {
+    try {
+      const result = await privateChatCreateHandler(req.body);
       res.status(StatusCodes.OK)
         .json(result);
     } catch (err) {

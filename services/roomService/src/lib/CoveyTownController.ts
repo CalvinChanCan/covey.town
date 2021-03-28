@@ -6,6 +6,7 @@ import PlayerSession from '../types/PlayerSession';
 import TwilioVideo from './TwilioVideo';
 import IVideoClient from './IVideoClient';
 import TwilioChat from './TwilioChat';
+import IChatClient from './IChatClient';
 
 const friendlyNanoID = customAlphabet('1234567890ABCDEF', 8);
 
@@ -84,6 +85,8 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
+  private _privateChannels: string[];
+
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = (process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID());
     this._capacity = 50;
@@ -91,6 +94,7 @@ export default class CoveyTownController {
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
     this._channelID = '';
+    this._privateChannels = [];
   }
 
   /**
@@ -170,5 +174,9 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach((listener) => listener.onTownDestroyed());
+  }
+
+  addPrivateChannel(channelID: string): void {
+    this._privateChannels.push(channelID);
   }
 }

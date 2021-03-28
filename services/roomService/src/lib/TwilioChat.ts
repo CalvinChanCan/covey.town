@@ -4,7 +4,6 @@ import assert from 'assert';
 import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
 import {MessageInstance} from 'twilio/lib/rest/chat/v2/service/channel/message';
 import {InviteContext} from 'twilio/lib/rest/chat/v2/service/channel/invite';
-import Client from 'twilio-chat';
 import IChatClient from './IChatClient';
 
 dotenv.config();
@@ -93,6 +92,12 @@ export default class TwilioChat implements IChatClient {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
       .create({friendlyName, uniqueName});
+
+    await this._twilioClient.chat.services(this._twilioChatServiceSID)
+      .update({
+        webhookMethod: '',
+        postWebhookUrl: '',
+      });
     return response;
   }
 
@@ -139,7 +144,11 @@ export default class TwilioChat implements IChatClient {
   async sendInvite(channelSID: string, identity: string): Promise<InviteContext> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels(channelSID)
-      .invites(identity);
+      .invites
+      .create({
+        identity,
+      })
+    ;
     return response;
   }
 

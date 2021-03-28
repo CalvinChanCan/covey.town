@@ -78,6 +78,24 @@ export interface TownUpdateRequest {
   isPubliclyListed?: boolean;
 }
 
+
+/**
+ * Payload sent by client to create a private chat in Covey.Town
+ */
+export interface ChatCreateRequest {
+  currentPlayerID: string;
+  otherPlayerID: string;
+  coveyTownID: string
+}
+
+/**
+ * Response from the server for a private chat create request
+ */
+export interface ChatCreateResponse {
+  uniqueName: string;
+}
+
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -141,6 +159,11 @@ export default class TownsServiceClient {
 
   async joinTown(requestData: TownJoinRequest): Promise<TownJoinResponse> {
     const responseWrapper = await this._axios.post('/sessions', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async createPrivateChatChannel(requestData: ChatCreateRequest): Promise<ChatCreateResponse> {
+    const responseWrapper = await this._axios.post('/chat', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
