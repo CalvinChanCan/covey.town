@@ -1,6 +1,6 @@
 // handle channels in this file- wrap chatscreen in tab/tabpanels
 // how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
@@ -22,6 +22,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
+  const [tabIndex, setTabIndex] = React.useState(0)
+
+  const handleTabsChange = useCallback((index) => {
+    setTabIndex(index)
+  },[]);
 
   const addChannel = (newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
@@ -47,19 +52,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       await channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
       addChannel(response);
     }
-  }
-
-  const createChannel = async (channelID: string, channelFriendlyName: string) => {
-    if (client) {
-      const createdChannel = await client.createChannel({
-        uniqueName: channelID,
-        friendlyName: channelFriendlyName,
-      });
-
-      console.log(`${createdChannel.friendlyName} has been created!`)
-      return createdChannel;
-    }
-    throw Error(`Something went wrong, client error. Please come back later.`);
   }
 
   const mainChannelLogIn = async () => {
@@ -93,17 +85,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   const createPrivateChannelWithBot = async () => {
     try {
-      // const created = await createChannel(nanoid(), nanoid(5));
-      // await joinChannel(created);
-
       await apiClient.createChatBotChannel({
         playerID: myPlayerID,
         coveyTownID: currentTownID,
       })
-
-
+      setTabIndex(channels.length)
     } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
+      throw new Error(`Unable to create channel with a bot`);
     }
   }
 
@@ -199,7 +187,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   return (
     <>
-      <Tabs>
+      <Tabs index={tabIndex} onChange={handleTabsChange}>
         <TabList>
           {renderTabs}
         </TabList>
