@@ -143,13 +143,17 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // Private messaging work
 
-  const createPrivateChannelFromMenu = async (currentPlayer: string, playerToPM: Player) => {
+  const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
     try {
       const channel = await createChannel(nanoid(), `Private Message with ${playerToPM.userName}`);
       await joinChannel(channel);
 
       try {
-        await channel.invite(playerToPM.userName)
+        const identity = {
+          playerID: playerToPM.id,
+          userName: playerToPM.userName,
+        }
+        await channel.invite(JSON.stringify(identity))
       } catch(e){
         throw new Error(`${e}`);
       }
