@@ -14,74 +14,42 @@ import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
 import useNearbyPlayers from "../../hooks/useNearbyPlayers";
 
-
-
+/**
+ * 
+ */
 export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.Element {
   const [client, setClient] = useState<Client>();
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
-  const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
-  const [tabIndex, setTabIndex] = React.useState(0)
+  const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabsChange = useCallback((index) => {
     setTabIndex(index)
   },[]);
 
-  const addChannel = (newChannel: Channel) => {
+  const addChannel = useCallback((newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
     if (!exists) {
       setChannels(old => [...old, newChannel]);
     } else {
-      if (newChannel.uniqueName === currentTownID) {
-        setMainChannelJoined(true);
-      }
       console.log("Channel already Added.");
     }
-  }
+  },[channels]);
 
-  const joinChannel = async (channelToJoin: Channel) => {
-    if (channelToJoin.status === "joined") {
-      if(channelToJoin.uniqueName === currentTownID){
-        addChannel(channelToJoin);
-      }
-      console.log(`Channel, ${channelToJoin.friendlyName} already joined.`);
-    } else {
-      console.log(`Status for ${channelToJoin.friendlyName} is ${channelToJoin.status}`);
-      const response = await channelToJoin.join();
-      await channelToJoin.sendMessage(`${userName} joined the main chat for ${channelToJoin.friendlyName}`);
-      addChannel(response);
-    }
-  }
-
-  const mainChannelLogIn = async () => {
-    if (client) {
-      // setChannels((await client.getSubscribedChannels()).items);
-
-      client.on('channelJoined', async (joinedChannel: Channel) => {
-        // const channelMessages = await joinedChannel.getMessages();
+  const handleChannelEvents = useCallback(async(channelClient : Client)=>{
+      channelClient.on('channelJoined', async (joinedChannel: Channel) => {
         console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
       });
 
-      client.on('channelInvited', async (channel) => {
+      channelClient.on('channelInvited', async (channel: Channel) => {
         console.log(`Invited to channel ${channel.friendlyName}`);
         // Join the channel that you were invited to
-        await channel.join();
-        await channel.sendMessage(`${userName} joined the chat`);
-        setChannels(oldChannels =>[...oldChannels, channel])
+        const response = await channel.join();
+        await response.sendMessage(`${userName} has joined the chat`);
+        setChannels(oldChannels =>[...oldChannels, response]); // should check if already in the private chat
       });
-
-    }
-    try {
-      if (client) {
-        const mainChannel = await client.getChannelByUniqueName(currentTownID);
-        await joinChannel(mainChannel);
-        setMainChannelJoined(true);
-      }
-    } catch {
-      throw new Error(`Unable to join channel for ${currentTownFriendlyName}`);
-    }
-  }
+  },[userName]);
 
   const createPrivateChannelWithBot = async () => {
     try {
@@ -93,7 +61,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } catch {
       throw new Error(`Unable to create channel with a bot`);
     }
-  }
+  };
+
 
   // UseEffect-- on mounting, gets the chat client object.
   // could also attempt to join main room chat here.
@@ -104,7 +73,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       try {
 
         const newClient = await Client.create(chatToken);
-        if (isMounted) setClient(newClient);
+        if (isMounted) {
+          console.log("CLIENT SET HERE");
+          setClient(newClient);
+        }
         setLoading(false);
       } catch (error) {
         throw new Error(`Unable to create client for ${currentTownFriendlyName}: \n${error}`);
@@ -116,6 +88,46 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     };
 
   }, [chatToken, currentTownFriendlyName]);
+
+
+  useEffect(()=>{
+    const listen = ()=> {
+      if (client) {
+        handleChannelEvents(client);
+        console.log('Channel Listener HERE');
+      }
+    };
+
+    listen();
+
+    return (()=> {})
+  },[client, handleChannelEvents]);
+
+
+  // log in useEffect-to get rid of button but will trigger anytime a channel is added
+  useEffect(()=>{
+    const login = async()=> {
+      console.log("login useEffect triggered...");
+      try {
+        if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
+          const mainChannel = await client.getChannelByUniqueName(currentTownID);
+          console.log(`Status for ${mainChannel.friendlyName} is ${mainChannel.status}`);
+          if(mainChannel.status !== "joined"){
+            await mainChannel.join();
+          };
+          addChannel(mainChannel);
+          await mainChannel.sendMessage(`${userName} has joined the main chat`);
+        };
+      } catch {
+        throw new Error(`Unable to join channel for town`);
+      }
+    };
+
+    login();
+
+    return (()=> {})
+  },[client, userName, currentTownID, channels, addChannel]);
+
 
 
   const renderTabs = (channels).map(channel => {
@@ -163,7 +175,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
 
   // Private messaging work
-
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
     await apiClient.createPrivateChatChannel({
       currentPlayerID,
@@ -195,8 +206,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
-      <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
-        Channel</Button>
       <Button onClick={createPrivateChannelWithBot}>Help</Button>
 
       <Menu>
