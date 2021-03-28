@@ -1,49 +1,48 @@
 // handle channels in this file- wrap chatscreen in tab/tabpanels
 // how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
 import React, {useCallback, useEffect, useState} from 'react';
-import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuList, MenuOptionGroup, MenuItemOption, MenuDivider} from "@chakra-ui/react";
+import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuList, MenuOptionGroup, MenuItemOption} from "@chakra-ui/react";
 
-
-import {nanoid} from 'nanoid';
-import {use} from "matter";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
 import useNearbyPlayers from "../../hooks/useNearbyPlayers";
 
 /**
- * 
+ * ChannelWrapper manages channels. It takes in the chat token to generate a client, 
+ * which is used for channel management.
+ * @param chatToken the token used to create the Chat Client 
+ * @returns A React Component that displays the full chat window
  */
 export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.Element {
   const [client, setClient] = useState<Client>();
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
-  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, myPlayerID, apiClient} = useCoveyAppState();
   const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabsChange = useCallback((index) => {
     setTabIndex(index)
   },[]);
 
+  // checks if channel already exists, then adds to channels array if not already exists.
   const addChannel = useCallback((newChannel: Channel) => {
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
     if (!exists) {
       setChannels(old => [...old, newChannel]);
-    } else {
-      console.log("Channel already Added.");
-    }
+    };
   },[channels]);
 
+  // Handler for channel events
   const handleChannelEvents = useCallback(async(channelClient : Client)=>{
       channelClient.on('channelJoined', async (joinedChannel: Channel) => {
         console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
       });
 
       channelClient.on('channelInvited', async (channel: Channel) => {
-        console.log(`Invited to channel ${channel.friendlyName}`);
+        console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
         // Join the channel that you were invited to
         const response = await channel.join();
         await response.sendMessage(`${userName} has joined the chat`);
@@ -64,8 +63,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   };
 
 
-  // UseEffect-- on mounting, gets the chat client object.
-  // could also attempt to join main room chat here.
+  // Get client object on mount.
   useEffect(() => {
     let isMounted = true;
     const logIn = async () => {
@@ -74,7 +72,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
         const newClient = await Client.create(chatToken);
         if (isMounted) {
-          console.log("CLIENT SET HERE");
           setClient(newClient);
         }
         setLoading(false);
@@ -90,11 +87,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }, [chatToken, currentTownFriendlyName]);
 
 
+  // set listener channel event listeners on mount.
   useEffect(()=>{
     const listen = ()=> {
       if (client) {
         handleChannelEvents(client);
-        console.log('Channel Listener HERE');
       }
     };
 
@@ -104,22 +101,26 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[client, handleChannelEvents]);
 
 
+  // log into main channel on mount
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(()=>{
     const login = async()=> {
-      console.log("login useEffect triggered...");
+      console.log("login useEffect triggered..."); // for debug
       try {
         if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
+          // console.log(await client.getLocalChannels());
+          // Will Error out if token has timed out!
           const mainChannel = await client.getChannelByUniqueName(currentTownID);
-          console.log(`Status for ${mainChannel.friendlyName} is ${mainChannel.status}`);
+          console.log(mainChannel);
+          console.log(`${userName}'s status for ${mainChannel.friendlyName} is ${mainChannel.status}`); // for debug
           if(mainChannel.status !== "joined"){
             await mainChannel.join();
           };
           addChannel(mainChannel);
           await mainChannel.sendMessage(`${userName} has joined the main chat`);
         };
-      } catch {
-        throw new Error(`Unable to join channel for town`);
+      } catch (error){
+        throw new Error(`Unable to join channel for town ${error}`);
       }
     };
 
@@ -129,7 +130,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[client, userName, currentTownID, channels, addChannel]);
 
 
-
+  // Renders channels tabs based on channels array.
   const renderTabs = (channels).map(channel => {
     const {friendlyName, uniqueName} = channel;
 
@@ -164,6 +165,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   });
 
+  // Renders each channel's chat screen.
   const renderTabScreens = (channels).map(channel => {
     const {uniqueName} = channel;
     return (
@@ -183,8 +185,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     });
   };
 
-
-
   // filter the player list to only show people not the current player
   const filteredPlayerList = useNearbyPlayers().nearbyPlayers;
 
@@ -194,7 +194,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     <MenuItemOption key={player.id} value={player.id}
                     onClick={() =>{createPrivateChannelFromMenu(myPlayerID, player)}}>{player.userName}</MenuItemOption>
   ));
-
 
   return (
     <>
