@@ -31,11 +31,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [client, setClient] = useState<Client>();
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
-  const {currentTownID, currentTownFriendlyName, userName, myPlayerID, apiClient} = useCoveyAppState();
   const [tabIndex, setTabIndex] = useState(0);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
-  const [tabIndex, setTabIndex] = useState(0);
+
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
 
@@ -48,7 +47,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     const exists = channels.find(each => each.uniqueName === newChannel.uniqueName);
     if (!exists) {
       setChannels(old => [...old, newChannel]);
-    };
+    }
   },[channels]);
 
   // Handler for channel events
@@ -258,13 +257,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         </TabPanels>
       </Tabs>
       <Button onClick={createPrivateChannelWithBot}>Help</Button>
-      <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
-        Channel</Button>
-      <Button onClick={getTownChatLogs} isDisabled={!mainChannelJoined}>Logs</Button>
-      <Button onClick={createPrivateChannelWithBot} isDisabled={!mainChannelJoined}>Help</Button>
+      <Button onClick={getTownChatLogs}>Logs</Button>
 
       <Menu>
-        <MenuButton isDisabled={!mainChannelJoined} as={Button}>
+        <MenuButton as={Button}>
           Private Message
         </MenuButton>
         <MenuList minWidth="240px" maxHeight="400px" overflow="auto">
