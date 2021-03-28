@@ -247,7 +247,7 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
         players: {
           player1: player1.userName,
           player2: player2.userName,
-        }
+        },
       };
 
       const response = await TwilioChat.getInstance().createChannel(JSON.stringify(friendlyName), nanoid(5));
