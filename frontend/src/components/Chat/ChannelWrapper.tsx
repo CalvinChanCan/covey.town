@@ -91,10 +91,17 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }
 
-  const createPrivateChannel = async () => {
+  const createPrivateChannelWithBot = async () => {
     try {
-      const created = await createChannel(nanoid(), nanoid(5));
-      await joinChannel(created);
+      // const created = await createChannel(nanoid(), nanoid(5));
+      // await joinChannel(created);
+
+      await apiClient.createChatBotChannel({
+        playerID: myPlayerID,
+        coveyTownID: currentTownID,
+      })
+
+
     } catch {
       throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
     }
@@ -144,11 +151,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         </Tab>
       )
     } catch {
-      return (
+      return friendlyName === 'Help' ? (
+        <Tab key={uniqueName}>
+          {friendlyName}
+        </Tab>
+      ) : (
         <Tab key={uniqueName}>
           Town Chat
         </Tab>
-      )
+      );
     }
 
   });
@@ -198,7 +209,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       </Tabs>
       <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
         Channel</Button>
-      <Button onClick={createPrivateChannel}>Start New Chat</Button>
+      <Button onClick={createPrivateChannelWithBot}>Help</Button>
 
       <Menu>
         <MenuButton as={Button}>

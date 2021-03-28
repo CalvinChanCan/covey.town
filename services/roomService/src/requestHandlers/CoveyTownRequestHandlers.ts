@@ -102,6 +102,22 @@ export interface ChatCreateResponse {
 }
 
 /**
+ * Payload sent by client to create a private chat in Covey.Town
+ */
+export interface ChatBotCreateRequest {
+  playerID: string;
+  coveyTownID: string;
+}
+
+/**
+ * Response from the server for a private chat create request
+ */
+export interface ChatBotCreateResponse {
+  uniqueName: string;
+}
+
+
+/**
  * Envelope that wraps any response from the server
  */
 export interface ResponseEnvelope<T> {
@@ -227,7 +243,6 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
 
     // Verify that both players actually exist in the room.
     if (player1 && player2) {
-
       const friendlyName = {
         players: {
           player1: player1.userName,
@@ -269,9 +284,45 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
     isOK: false,
     message: 'Room does not exist',
   };
+}
 
+export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): Promise<ResponseEnvelope<ChatBotCreateResponse>> {
 
+  if (requestData.playerID.length === 0) {
+    return {
+      isOK: false,
+      message: 'Usernames cannot be empty',
+    };
+  }
 
+  const controller = CoveyTownsStore.getInstance().getControllerForTown(requestData.coveyTownID);
+  if (controller) {
+    const targetPlayer = controller.players.find(player => player.id === requestData.playerID);
+    const response = await TwilioChat.getInstance().createChannelWithBot('Help', nanoid(5));
+
+    if (targetPlayer) {
+      const identity = {
+        playerID: targetPlayer.id,
+        userName: targetPlayer.userName,
+      };
+      await TwilioChat.getInstance().sendInvite(response.sid, JSON.stringify(identity));
+      return {
+        isOK: true,
+        response: {
+          uniqueName: response.uniqueName,
+        },
+      };
+    }
+    return {
+      isOK: false,
+      message: 'The player is not in the room',
+    };
+
+  }
+  return {
+    isOK: false,
+    message: 'Room does not exist',
+  };
 }
 
 /**

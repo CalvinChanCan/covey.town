@@ -97,6 +97,21 @@ export interface ChatCreateResponse {
 
 
 /**
+ * Payload sent by client to create a private chat in Covey.Town
+ */
+export interface ChatBotCreateRequest {
+  playerID: string;
+  coveyTownID: string;
+}
+
+/**
+ * Response from the server for a private chat create request
+ */
+export interface ChatBotCreateResponse {
+  uniqueName: string;
+}
+
+/**
  * Envelope that wraps any response from the server
  */
 export interface ResponseEnvelope<T> {
@@ -164,6 +179,11 @@ export default class TownsServiceClient {
 
   async createPrivateChatChannel(requestData: ChatCreateRequest): Promise<ChatCreateResponse> {
     const responseWrapper = await this._axios.post('/chat', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async createChatBotChannel(requestData: ChatBotCreateRequest): Promise<ChatBotCreateResponse> {
+    const responseWrapper = await this._axios.post('/help', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

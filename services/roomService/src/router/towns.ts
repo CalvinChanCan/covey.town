@@ -4,6 +4,7 @@ import io from 'socket.io';
 import { Server } from 'http';
 import { StatusCodes } from 'http-status-codes';
 import {
+  ChatBotCreateHandler,
   privateChatCreateHandler,
   townCreateHandler, townDeleteHandler,
   townJoinHandler,
@@ -126,6 +127,27 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         });
     }
   });
+
+
+
+
+  /**
+   * Create a private chat channel
+   */
+  app.post('/help', BodyParser.json(), async (req, res) => {
+    try {
+      const result = await ChatBotCreateHandler(req.body);
+      res.status(StatusCodes.OK)
+        .json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({
+          message: 'Internal server error, please see log in server for more details',
+        });
+    }
+  });
+
 
   const socketServer = new io.Server(http, { cors: { origin: '*' } });
   socketServer.on('connection', townSubscriptionHandler);
