@@ -1,14 +1,21 @@
 // handle channels in this file- wrap chatscreen in tab/tabpanels
 // how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu, MenuButton, MenuList, MenuOptionGroup, MenuItemOption, MenuDivider} from "@chakra-ui/react";
+import {
+  Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu,
+  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast
+} from "@chakra-ui/react";
 
 
 import {nanoid} from 'nanoid';
 import {use} from "matter";
+
+// for saving the files
+import { saveAs } from 'file-saver';
+
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -22,7 +29,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [channels, setChannels] = useState<Channel[]>([]);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
-  const [tabIndex, setTabIndex] = React.useState(0)
+  const [tabIndex, setTabIndex] = useState(0);
+  const [privateChannels, setPrivateChannels] = useState<string[]>([]);
+  const toast = useToast();
 
   const handleTabsChange = useCallback((index) => {
     setTabIndex(index)
@@ -68,6 +77,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         // Join the channel that you were invited to
         await channel.join();
         await channel.sendMessage(`${userName} joined the chat`);
+        const getFirstMessage = await channel.getMessages();
+
+        // Relies on the idea that the first message comes from the inviting user!
+        setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
         setChannels(oldChannels =>[...oldChannels, channel])
       });
 
@@ -165,6 +178,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Private messaging work
 
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
+
+    setPrivateChannels(oldUsers =>[...oldUsers, playerToPM.id]);
     await apiClient.createPrivateChatChannel({
       currentPlayerID,
       otherPlayerID: playerToPM.id,
@@ -173,9 +188,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   };
 
 
-
   // filter the player list to only show people not the current player
-  const filteredPlayerList = useNearbyPlayers().nearbyPlayers;
+  const filteredPlayerList = useNearbyPlayers().nearbyPlayers.filter(player => !privateChannels.includes(player.id));
 
   // players.filter(player => player.id !== myPlayerID);
 
@@ -183,6 +197,32 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     <MenuItemOption key={player.id} value={player.id}
                     onClick={() =>{createPrivateChannelFromMenu(myPlayerID, player)}}>{player.userName}</MenuItemOption>
   ));
+
+  // Logs Work
+  const getTownChatLogs = async () => {
+    if(client) {
+
+      // get the channel, the messages and create a chatLog array
+      const mainChannel = await client.getChannelByUniqueName(currentTownID);
+      const messages = await mainChannel.getMessages();
+      const chatLog: BlobPart[] | undefined = [];
+
+      // fill the array with formatted messages
+      messages.items.map(message =>(
+        chatLog.push(`${message.dateCreated}: ${message.author.split(',')[1].replace('}','').replaceAll('"','')}:${message.body}\n`)
+    ));
+      // make a blob of the array, and save it.
+      const blob = new Blob(chatLog, {type: "text/plain;charset=utf-8"});
+      saveAs(blob, `Town_Chat_Logs.txt`);
+
+      toast({
+        title: `Downloaded Town Chat Logs`,
+        status: 'success',
+        isClosable: true,
+        duration: null,
+      })
+    }
+  };
 
 
   return (
@@ -195,12 +235,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
+
       <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
         Channel</Button>
-      <Button onClick={createPrivateChannelWithBot}>Help</Button>
+      <Button onClick={getTownChatLogs} isDisabled={!mainChannelJoined}>Logs</Button>
+      <Button onClick={createPrivateChannelWithBot} isDisabled={!mainChannelJoined}>Help</Button>
 
       <Menu>
-        <MenuButton as={Button}>
+        <MenuButton isDisabled={!mainChannelJoined} as={Button}>
           Private Message
         </MenuButton>
         <MenuList minWidth="240px" maxHeight="400px" overflow="auto">
