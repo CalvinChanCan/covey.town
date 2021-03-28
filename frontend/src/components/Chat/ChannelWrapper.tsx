@@ -16,6 +16,7 @@ import {
   MenuList,
   MenuOptionGroup,
   MenuItemOption,
+  CloseButton,
   MenuDivider,
   useToast
 } from "@chakra-ui/react";
@@ -136,6 +137,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   }, [chatToken, currentTownFriendlyName]);
 
+  const closeChannel = async (uniqueName: string) => {
+    if (client) {
+      const channel = await client.getChannelByUniqueName(uniqueName);
+      await channel.leave()
+      const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
+      setChannels(remainingChannels);
+      setTabIndex(0);
+    }
+  }
 
   const renderTabs = (channels).map(channel => {
     const {friendlyName, uniqueName} = channel;
@@ -154,13 +164,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       }
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`}
+          {`Private Message with ${tabName}`} <CloseButton onClick={() => closeChannel(uniqueName)}/>
         </Tab>
       )
     } catch {
-      return friendlyName === 'Help' ? (
+      return friendlyName === userName ? (
         <Tab key={uniqueName}>
-          {friendlyName}
+          Help <CloseButton onClick={() => closeChannel(uniqueName)}/>
         </Tab>
       ) : (
         <Tab key={uniqueName}>

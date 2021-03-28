@@ -319,7 +319,13 @@ export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): P
 
     if (targetPlayer) {
       const duplicate = channels.find((channel) => channel.friendlyName === targetPlayer.userName);
+      const identity = {
+        playerID: targetPlayer.id,
+        userName: targetPlayer.userName,
+      };
+
       if (duplicate){
+        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity));
         return {
           isOK: false,
           message: 'Help channel already exists for the player',
@@ -328,10 +334,7 @@ export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): P
 
       const response = await TwilioChat.getInstance().createChannelWithBot(targetPlayer.userName, nanoid(5));
       controller.addHelpChannel(response);
-      const identity = {
-        playerID: targetPlayer.id,
-        userName: targetPlayer.userName,
-      };
+
       await TwilioChat.getInstance().sendInvite(response.sid, JSON.stringify(identity));
       return {
         isOK: true,
