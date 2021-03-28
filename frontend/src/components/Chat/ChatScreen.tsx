@@ -1,12 +1,12 @@
 import React, {createRef, useCallback, useEffect, useRef, useState} from 'react';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Box, Button, Input, Stack} from "@chakra-ui/react";
+import {Box, Button, Input, Stack, Center} from "@chakra-ui/react";
 import {Message} from 'twilio-chat/lib/message';
 import Video from "../../classes/Video/Video";
 
 /**
  * ChatScreen is a React Component that handles the messaging functionality of a given channel.
- * @param channel The channel for this ChatScreen. 
+ * @param channel The channel for this ChatScreen.
  * @returns React component that dispalys messages, allows input to send messages, and send button.
  */
 export default function ChatScreen({channel}: { channel: Channel }): JSX.Element {
@@ -94,6 +94,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
             }
           </Box>
           <Input w="90%" autoFocus name="name" placeholder=""
+                 autoComplete="off"
                  onChange={(event) => setText(event.target.value)}
                  value={text}
                  onKeyPress={event => {

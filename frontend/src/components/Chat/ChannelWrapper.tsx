@@ -6,7 +6,7 @@ import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {
   Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu,
-  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast
+  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast, CloseButton
 } from "@chakra-ui/react";
 
 
@@ -59,9 +59,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       channelClient.on('channelInvited', async (channel: Channel) => {
         console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
         // Join the channel that you were invited to
-        const response = await channel.join();
-        await response.sendMessage(`${userName} has joined the chat`);
-        setChannels(oldChannels =>[...oldChannels, response]); // should check if already in the private chat
         await channel.join();
         await channel.sendMessage(`${userName} joined the chat`);
         const getFirstMessage = await channel.getMessages();
@@ -73,19 +70,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[userName]);
 
   const createPrivateChannelWithBot = async () => {
-    try {
-      await apiClient.createChatBotChannel({
-        playerID: myPlayerID,
-        coveyTownID: currentTownID,
-      })
-      setTabIndex(channels.length)
-    } catch (err) {
-      toast({
-        title: 'Unable to create help chat',
-        description: err.toString(),
-        status: 'error'
-      })
-    }
+    await apiClient.createChatBotChannel({
+      playerID: myPlayerID,
+      coveyTownID: currentTownID,
+    })
+    setTabIndex(channels.length)
   };
 
 
@@ -112,10 +101,11 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   }, [chatToken, currentTownFriendlyName]);
 
-  const closeChannel = async (uniqueName: string) => {
+  const leaveChannel = async (uniqueName: string) => {
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
       await channel.leave()
+      console.log("Should have left channel ------------")
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
       setTabIndex(0);
@@ -169,27 +159,29 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const renderTabs = (channels).map(channel => {
     const {friendlyName, uniqueName} = channel;
 
+    console.log(friendlyName);
+
     let tabName;
     try {
       const { players: {
-        player1,
-        player2
+        currentPlayer,
+        otherPlayer,
       }} = JSON.parse(friendlyName);
-
-      if (player1 !== userName) {
-        tabName = player1;
+      if (currentPlayer.userName !== userName) {
+        tabName = currentPlayer.userName;
       } else {
-        tabName = player2;
+        tabName = otherPlayer.userName;
       }
+
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} <CloseButton onClick={() => closeChannel(uniqueName)}/>
+          {`Private Message with ${tabName}`} <CloseButton onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       )
     } catch {
-      return friendlyName === userName ? (
+      return friendlyName === myPlayerID ? (
         <Tab key={uniqueName}>
-          Help <CloseButton onClick={() => closeChannel(uniqueName)}/>
+          Help <CloseButton onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       ) : (
         <Tab key={uniqueName}>
