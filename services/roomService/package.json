@@ -21,7 +21,8 @@
     "pack": "npm-pack-zip",
     "build:live": "nodemon --watch 'src/**/*.ts' src/server.ts",
     "format": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "demo": "ts-node src/client/ClientExamples.ts"
   },
   "keywords": [],
   "devDependencies": {
@@ -54,6 +55,7 @@
     "http-status-codes": "^2.1.4",
     "nanoid": "^3.1.20",
     "socket.io": "^3.0.4",
-    "twilio": "^3.54.2"
+    "twilio": "^3.54.2",
+    "twilio-chat": "^4.1.0"
   }
 }

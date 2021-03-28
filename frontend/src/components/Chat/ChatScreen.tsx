@@ -60,6 +60,13 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     scrollToBottom();
   }, [messages])
 
+  const getMessageAuthor = (author: string) => {
+    try {
+      return JSON.parse(author).userName
+    } catch {
+      return author
+    }
+  }
 
   return (
     <>
@@ -68,7 +75,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
           <Box maxH="500px" overflowY="scroll">
             {messages.map((message) =>
               <div key={message.sid}>
-                <b>{message.author}</b>:{message.body}
+                <b>{getMessageAuthor(message.author)}</b>:{message.body}
                 <div ref={chatContainer}/>
               </div>)
             }

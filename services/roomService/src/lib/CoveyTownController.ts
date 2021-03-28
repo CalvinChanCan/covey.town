@@ -5,8 +5,8 @@ import Player from '../types/Player';
 import PlayerSession from '../types/PlayerSession';
 import TwilioVideo from './TwilioVideo';
 import IVideoClient from './IVideoClient';
-import IChatClient from './IChatClient';
 import TwilioChat from './TwilioChat';
+import IChatClient from './IChatClient';
 
 const friendlyNanoID = customAlphabet('1234567890ABCDEF', 8);
 
@@ -48,6 +48,14 @@ export default class CoveyTownController {
     this._friendlyName = value;
   }
 
+  get channelID(): string {
+    return this._channelID;
+  }
+
+  set channelID(value: string) {
+    this._channelID = value;
+  }
+
   get coveyTownID(): string {
     return this._coveyTownID;
   }
@@ -61,13 +69,13 @@ export default class CoveyTownController {
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
-  /** The chatClient that this CoveyTown will use to provision video resources * */
-  private _chatClient: IChatClient = TwilioChat.getInstance();
 
   /** The list of CoveyTownListeners that are subscribed to events in this town * */
   private _listeners: CoveyTownListener[] = [];
 
   private readonly _coveyTownID: string;
+
+  private _channelID: string;
 
   private _friendlyName: string;
 
@@ -77,12 +85,16 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
+  private _privateChannels: string[];
+
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = (process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID());
     this._capacity = 50;
     this._townUpdatePassword = nanoid(24);
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
+    this._channelID = '';
+    this._privateChannels = [];
   }
 
   /**
@@ -101,7 +113,7 @@ export default class CoveyTownController {
     theSession.videoToken = await this._videoClient.getTokenForTown(this._coveyTownID, newPlayer.id);
 
     // Create a chat token for this user to join this town
-    theSession.chatToken = await this._chatClient.getToken(newPlayer.userName);
+    theSession.chatToken = await TwilioChat.getInstance().getToken(newPlayer.id, newPlayer.userName);
 
     // Notify other players that this player has joined
     this._listeners.forEach((listener) => listener.onPlayerJoined(newPlayer));
@@ -162,5 +174,9 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach((listener) => listener.onTownDestroyed());
+  }
+
+  addPrivateChannel(channelID: string): void {
+    this._privateChannels.push(channelID);
   }
 }

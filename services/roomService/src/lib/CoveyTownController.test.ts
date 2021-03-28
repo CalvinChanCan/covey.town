@@ -57,7 +57,7 @@ describe('CoveyTownController', () => {
         expect(mockGetTokenForTown).toBeCalledTimes(1);
         expect(mockGetChatTokenForTown).toBeCalledTimes(1);
         expect(mockGetTokenForTown).toBeCalledWith(townController.coveyTownID, newPlayerSession.player.id);
-        expect(mockGetChatTokenForTown).toBeCalledWith(newPlayerSession.player.userName);
+        expect(mockGetChatTokenForTown).toBeCalledWith(newPlayerSession.player.id, newPlayerSession.player.userName);
       });
   });
   describe('town listeners and events', () => {

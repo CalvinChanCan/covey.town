@@ -1,9 +1,11 @@
 import assert from 'assert';
 import { Socket } from 'socket.io';
+import {nanoid} from 'nanoid';
 import Player from '../types/Player';
 import { CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
+import TwilioChat from '../lib/TwilioChat';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -82,6 +84,39 @@ export interface TownUpdateRequest {
   isPubliclyListed?: boolean;
 }
 
+
+/**
+ * Payload sent by client to create a private chat in Covey.Town
+ */
+export interface ChatCreateRequest {
+  currentPlayerID: string;
+  otherPlayerID: string;
+  coveyTownID: string;
+}
+
+/**
+ * Response from the server for a private chat create request
+ */
+export interface ChatCreateResponse {
+  uniqueName: string;
+}
+
+/**
+ * Payload sent by client to create a private chat in Covey.Town
+ */
+export interface ChatBotCreateRequest {
+  playerID: string;
+  coveyTownID: string;
+}
+
+/**
+ * Response from the server for a private chat create request
+ */
+export interface ChatBotCreateResponse {
+  uniqueName: string;
+}
+
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -143,7 +178,11 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
       message: 'FriendlyName must be specified',
     };
   }
+
   const newTown = townsStore.createTown(requestData.friendlyName, requestData.isPubliclyListed);
+  const response = await TwilioChat.getInstance().createChannel(requestData.friendlyName, newTown.coveyTownID);
+  newTown.channelID = response.sid;
+
   return {
     isOK: true,
     response: {
@@ -156,6 +195,12 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 export async function townDeleteHandler(requestData: TownDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
   const success = townsStore.deleteTown(requestData.coveyTownID, requestData.coveyTownPassword);
+  if (success) {
+    const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
+    if (channelID) {
+      await TwilioChat.getInstance().deleteChannel(channelID);
+    }
+  }
   return {
     isOK: success,
     response: {},
@@ -166,12 +211,118 @@ export async function townDeleteHandler(requestData: TownDeleteRequest): Promise
 export async function townUpdateHandler(requestData: TownUpdateRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
   const success = townsStore.updateTown(requestData.coveyTownID, requestData.coveyTownPassword, requestData.friendlyName, requestData.isPubliclyListed);
+
+  if (success) {
+    const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
+    if (channelID && requestData.friendlyName) {
+      await TwilioChat.getInstance().updateChannel(channelID, requestData.friendlyName);
+    }
+  }
+
   return {
     isOK: success,
     response: {},
     message: !success ? 'Invalid password or update values specified. Please double check your town update password.' : undefined,
   };
 
+}
+
+export async function privateChatCreateHandler(requestData: ChatCreateRequest): Promise<ResponseEnvelope<ChatCreateResponse>> {
+
+  if (requestData.currentPlayerID.length === 0 || requestData.otherPlayerID.length === 0) {
+    return {
+      isOK: false,
+      message: 'Usernames cannot be empty',
+    };
+  }
+
+  const controller = CoveyTownsStore.getInstance().getControllerForTown(requestData.coveyTownID);
+  if (controller) {
+    const player1 = controller.players.find(player => player.id === requestData.currentPlayerID);
+    const player2 = controller.players.find(player => player.id === requestData.otherPlayerID);
+
+    // Verify that both players actually exist in the room.
+    if (player1 && player2) {
+      const friendlyName = {
+        players: {
+          player1: player1.userName,
+          player2: player2.userName,
+        },
+      };
+
+      const response = await TwilioChat.getInstance().createChannel(JSON.stringify(friendlyName), nanoid(5));
+
+      controller.addPrivateChannel(response.sid);
+
+      const identity1 = {
+        playerID: player1.id,
+        userName: player1.userName,
+      };
+
+      const identity2 = {
+        playerID: player2.id,
+        userName: player2.userName,
+      };
+
+      await TwilioChat.getInstance().sendInvite(response.sid, JSON.stringify(identity1));
+      await TwilioChat.getInstance().sendInvite(response.sid, JSON.stringify(identity2));
+
+      return {
+        isOK: true,
+        response: {
+          uniqueName: response.uniqueName,
+        },
+      };
+    }
+    return {
+      isOK: false,
+      message: 'Both players are not in the room',
+    };
+
+  }
+  return {
+    isOK: false,
+    message: 'Room does not exist',
+  };
+}
+
+export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): Promise<ResponseEnvelope<ChatBotCreateResponse>> {
+
+  if (requestData.playerID.length === 0) {
+    return {
+      isOK: false,
+      message: 'Usernames cannot be empty',
+    };
+  }
+
+  const controller = CoveyTownsStore.getInstance().getControllerForTown(requestData.coveyTownID);
+  if (controller) {
+    const targetPlayer = controller.players.find(player => player.id === requestData.playerID);
+    const response = await TwilioChat.getInstance().createChannelWithBot('Help', nanoid(5));
+
+    if (targetPlayer) {
+      const identity = {
+        playerID: targetPlayer.id,
+        userName: targetPlayer.userName,
+      };
+      await TwilioChat.getInstance().sendInvite(response.sid, JSON.stringify(identity));
+      return {
+        isOK: true,
+        response: {
+          uniqueName: response.uniqueName,
+        },
+      };
+    }
+    return {
+      isOK: false,
+      message: 'The player is not in the room',
+    };
+
+  }
+  return {
+    isOK: false,
+    message: 'Room does not exist',
+  };
 }
 
 /**
