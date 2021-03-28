@@ -96,14 +96,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }
 
-  const createPrivateChannel = async () => {
-    try {
-      const created = await createChannel(nanoid(), nanoid(5));
-      await joinChannel(created);
-    } catch {
-      throw new Error(`Unable to create or join channel for ${currentTownFriendlyName}`);
-    }
-  }
 
   // UseEffect-- on mounting, gets the chat client object.
   // could also attempt to join main room chat here.
@@ -178,6 +170,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   ));
 
 
+  // chat log work
+const createMainChatLog = console.log();
+
   return (
     <>
       <Tabs>
@@ -190,7 +185,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       </Tabs>
       <Button onClick={mainChannelLogIn} isDisabled={mainChannelJoined}>Log in to Main
         Channel</Button>
-      <Button onClick={createPrivateChannel}>Start New Chat</Button>
 
       <Menu>
         <MenuButton as={Button}>
