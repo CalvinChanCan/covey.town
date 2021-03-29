@@ -109,6 +109,16 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }
 
+  // handle closing a private message
+  const handleCloseButtonPrivateMessage = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
+
+    // we are using other and current player because we want to ensure that neither player has the other on their list.
+    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
+    console.log(`This is private channels ${newPrivateChannels}`);
+    setPrivateChannels(newPrivateChannels);
+    leaveChannel(uniqueName)
+  }
+
   // set listener channel event listeners on mount.
   useEffect(()=>{
     const listen = ()=> {
@@ -172,7 +182,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} <CloseButton onClick={() => leaveChannel(uniqueName)}/>
+          {`Private Message with ${tabName}`} <CloseButton onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
         </Tab>
       )
     } catch {
@@ -210,6 +220,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       coveyTownID: currentTownID
     });
   };
+
 
 
   // filter the player list to only show people not the current player
