@@ -67,21 +67,19 @@ export default class TwilioChat implements IChatClient {
   /**
    * Authorizes a user connecting to the chat
    */
-  async getToken(playerID:string, userName:string): Promise<string> {
-    const token = new Twilio.jwt.AccessToken(
-      this._twilioAccountSid, this._twilioApiKeySID, this._twilioApiKeySecret, {
-        ttl: MAX_ALLOWED_SESSION_DURATION,
-      },
-    );
+  async getToken(playerID: string, userName: string): Promise<string> {
     const identity = {
       playerID,
       userName,
     };
-    // eslint-disable-next-line
-    // @ts-ignore this is missing from the typedef, but valid as per the docs...
-    token.identity = JSON.stringify(identity);
 
-    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID });
+    const token = new Twilio.jwt.AccessToken(
+      this._twilioAccountSid, this._twilioApiKeySID, this._twilioApiKeySecret, {
+        ttl: MAX_ALLOWED_SESSION_DURATION,
+        identity: JSON.stringify(identity),
+      },
+    );
+    const chatGrant = new Twilio.jwt.AccessToken.ChatGrant({serviceSid: process.env.TWILIO_CHAT_SERVICE_SID});
 
     token.addGrant(chatGrant);
 

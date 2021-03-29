@@ -51,11 +51,10 @@ export default class TwilioVideo implements IVideoClient {
     const token = new Twilio.jwt.AccessToken(
       this._twilioAccountSid, this._twilioApiKeySID, this._twilioApiKeySecret, {
         ttl: MAX_ALLOWED_SESSION_DURATION,
+        identity: clientIdentity,
       },
     );
-    // eslint-disable-next-line
-    // @ts-ignore this is missing from the typedef, but valid as per the docs...
-    token.identity = clientIdentity;
+
     const videoGrant = new Twilio.jwt.AccessToken.VideoGrant({ room: coveyTownID });
     token.addGrant(videoGrant);
 
