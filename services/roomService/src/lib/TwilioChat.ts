@@ -152,14 +152,6 @@ export default class TwilioChat implements IChatClient {
     return response;
   }
 
-  async createPrivateChannel(friendlyName: string, uniqueName: string): Promise<ChannelInstance> {
-    const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
-      .channels
-      .create({friendlyName, uniqueName, type:'private' });
-
-    return response;
-  }
-
   async createChannelWithBot(friendlyName: string, uniqueName: string): Promise<ChannelInstance> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
