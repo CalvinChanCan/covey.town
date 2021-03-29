@@ -1,4 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
+import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
 import { UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
@@ -69,6 +70,8 @@ export default class CoveyTownController {
   /** The videoClient that this CoveyTown will use to provision video resources * */
   private _videoClient: IVideoClient = TwilioVideo.getInstance();
 
+  /** The videoClient that this CoveyTown will use to provision video resources * */
+  private _chatClient: IChatClient = TwilioChat.getInstance();
 
   /** The list of CoveyTownListeners that are subscribed to events in this town * */
   private _listeners: CoveyTownListener[] = [];
@@ -85,7 +88,9 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
-  private _privateChannels: string[];
+  private _privateChannels: ChannelInstance[];
+
+  private _helpChannels: ChannelInstance[];
 
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = (process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID());
@@ -95,6 +100,7 @@ export default class CoveyTownController {
     this._friendlyName = friendlyName;
     this._channelID = '';
     this._privateChannels = [];
+    this._helpChannels = [];
   }
 
   /**
@@ -113,7 +119,7 @@ export default class CoveyTownController {
     theSession.videoToken = await this._videoClient.getTokenForTown(this._coveyTownID, newPlayer.id);
 
     // Create a chat token for this user to join this town
-    theSession.chatToken = await TwilioChat.getInstance().getToken(newPlayer.id, newPlayer.userName);
+    theSession.chatToken = await this._chatClient.getToken(newPlayer.id, newPlayer.userName);
 
     // Notify other players that this player has joined
     this._listeners.forEach((listener) => listener.onPlayerJoined(newPlayer));
@@ -130,6 +136,8 @@ export default class CoveyTownController {
     this._players = this._players.filter((p) => p.id !== session.player.id);
     this._sessions = this._sessions.filter((s) => s.sessionToken !== session.sessionToken);
     this._listeners.forEach((listener) => listener.onPlayerDisconnected(session.player));
+    this._privateChannels.forEach((channel) => this._chatClient.deleteChannel(channel.sid));
+    this._helpChannels.forEach((channel) => this._chatClient.deleteChannel(channel.sid));
   }
 
   /**
@@ -176,7 +184,19 @@ export default class CoveyTownController {
     this._listeners.forEach((listener) => listener.onTownDestroyed());
   }
 
-  addPrivateChannel(channelID: string): void {
-    this._privateChannels.push(channelID);
+  addPrivateChannel(channel: ChannelInstance): void {
+    this._privateChannels.push(channel);
+  }
+
+  getPrivateChannels(): ChannelInstance[] {
+    return this._privateChannels;
+  }
+
+  addHelpChannel(channel: ChannelInstance): void {
+    this._helpChannels.push(channel);
+  }
+
+  getHelpChannels(): ChannelInstance[] {
+    return this._helpChannels;
   }
 }

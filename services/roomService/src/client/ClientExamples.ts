@@ -14,8 +14,16 @@ async function demoClient() {
     const channels = await client.getChannels();
     console.log(channels);
 
-    await client.updateChannel('CHe7cd67f642044d19a56e463b3c66a659', 'UPDATED');
-    await client.sendInvite('CHe7cd67f642044d19a56e463b3c66a659', 'CALVIN');
+    // Function to delete all channels
+    channels.forEach((channel) => {
+      setTimeout( async () => {
+        const res = await client.deleteChannel(channel.sid);
+        console.log(res);
+      }, 1000);
+    });
+
+    // await client.updateChannel('CHe7cd67f642044d19a56e463b3c66a659', 'UPDATED');
+    // await client.sendInvite('CHe7cd67f642044d19a56e463b3c66a659', 'CALVIN');
 
 
     // await client.deleteChannel('CH2ad13231b31847e38cb0143de6d3d534');

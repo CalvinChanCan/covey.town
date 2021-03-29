@@ -1,50 +1,62 @@
 import React, {createRef, useCallback, useEffect, useRef, useState} from 'react';
 import {Channel} from 'twilio-chat/lib/channel';
-import {Box, Button, Input, Stack, Tabs, Tab, TabList} from "@chakra-ui/react";
+import {Box, Button, Input, Stack, Center} from "@chakra-ui/react";
 import {Message} from 'twilio-chat/lib/message';
-import useCoveyAppState from "../../hooks/useCoveyAppState";
 import Video from "../../classes/Video/Video";
 
-
+/**
+ * ChatScreen is a React Component that handles the messaging functionality of a given channel.
+ * @param channel The channel for this ChatScreen.
+ * @returns React component that dispalys messages, allows input to send messages, and send button.
+ */
 export default function ChatScreen({channel}: { channel: Channel }): JSX.Element {
   const [text, setText] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [thisChannel] = useState<Channel>(channel);
 
-  const {currentTownID, currentTownFriendlyName, userName, apiClient, socket} = useCoveyAppState();
   const messagesEndRef = useRef(null);
   const chatContainer = createRef<HTMLDivElement>();
 
-  // running 5 times?
-  const handleMessageAdded = useCallback((messageToAdd: Message) => {
-    setMessages(old => [...old, messageToAdd]);
-    console.log(messages);
-  }, [messages])
 
+  // useEffect for message added listener
+  useEffect(()=>{
+    console.log('calling message handler');
+    const messageListener =()=>{
+      thisChannel.on("messageAdded", (messageToAdd: Message) => {
+        setMessages(old => [...old, messageToAdd]);
+        console.log("message added listener has been called.")
+        // console.log(messages);
+      });
+    };
+    messageListener();
+    return (() => {});
+  }, [thisChannel]);
+
+
+  // useEffect for initializing old messages to chatbox
   useEffect(() => {
     let isMounted = true;
     const handleChannel = async () => {
       const previousMessages = await thisChannel.getMessages();
       const mes: Message[] = previousMessages.items;
-      setMessages(mes);
-      console.log('messages', mes);
-      thisChannel.on("messageAdded", handleMessageAdded);
-    }
+      if (isMounted) setMessages(mes);
+      console.log(`Channel got messages ${mes}`);
+    };
 
     handleChannel();
     return () => {
       isMounted = false
     };
-  }, [thisChannel])
+  }, [thisChannel]);
 
 
+  // sends messages to channel
   const sendMessage = () => {
     // console.log(messages)
     if (text && String(text).trim()) {
       setLoading(true);
 
-      console.log(text);
       channel.sendMessage(text);
 
       setText("");
@@ -52,13 +64,14 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     }
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     chatContainer.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, [chatContainer]);
 
+  // TODO fix linter issue
   useEffect(() => {
     scrollToBottom();
-  }, [messages])
+  }, [messages, scrollToBottom]);
 
   const getMessageAuthor = (author: string) => {
     try {
@@ -66,7 +79,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     } catch {
       return author
     }
-  }
+  };
 
   return (
     <>
@@ -81,6 +94,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
             }
           </Box>
           <Input w="90%" autoFocus name="name" placeholder=""
+                 autoComplete="off"
                  onChange={(event) => setText(event.target.value)}
                  value={text}
                  onKeyPress={event => {
