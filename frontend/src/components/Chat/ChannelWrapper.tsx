@@ -10,9 +10,6 @@ import {
 } from "@chakra-ui/react";
 
 
-import {nanoid} from 'nanoid';
-import {use} from "matter";
-
 // for saving the files
 import { saveAs } from 'file-saver';
 
@@ -209,7 +206,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       // fill the array with formatted messages
       messages.items.map(message =>(
-        chatLog.push(`${message.dateCreated}: ${message.author.split(',')[1].replace('}','').replaceAll('"','')}:${message.body}\n`)
+        chatLog.push(`${message.dateCreated}: ${JSON.parse(message.author).userName}:${message.body}\n`)
     ));
       // make a blob of the array, and save it.
       const blob = new Blob(chatLog, {type: "text/plain;charset=utf-8"});
