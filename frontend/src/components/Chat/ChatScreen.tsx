@@ -21,16 +21,19 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   // useEffect for message added listener
   useEffect(()=>{
+    let isMounted = true;
     console.log('calling message handler');
     const messageListener =()=>{
-      thisChannel.on("messageAdded", (messageToAdd: Message) => {
-        setMessages(old => [...old, messageToAdd]);
-        console.log("message added listener has been called.")
-        // console.log(messages);
-      });
+      if(isMounted){
+        thisChannel.on("messageAdded", (messageToAdd: Message) => {
+          setMessages(old => [...old, messageToAdd]);
+          console.log("message added listener has been called.")
+          // console.log(messages);
+        });
+      }
     };
     messageListener();
-    return (() => {});
+    return (()=> {isMounted = false;});
   }, [thisChannel]);
 
 
@@ -68,9 +71,12 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     chatContainer.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatContainer]);
 
-  // TODO fix linter issue
   useEffect(() => {
-    scrollToBottom();
+    let isMounted = true;
+    if(isMounted) scrollToBottom();
+    return () => {
+      isMounted = false
+    };
   }, [messages, scrollToBottom]);
 
   const getMessageAuthor = (author: string) => {

@@ -1,7 +1,4 @@
-// handle channels in this file- wrap chatscreen in tab/tabpanels
-// how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import axios from 'axios';
+import React, {useCallback, useEffect, useState} from 'react';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {
@@ -9,9 +6,6 @@ import {
   MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast, CloseButton
 } from "@chakra-ui/react";
 
-
-import {nanoid} from 'nanoid';
-import {use} from "matter";
 
 // for saving the files
 import { saveAs } from 'file-saver';
@@ -32,7 +26,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
   const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
@@ -114,25 +107,27 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // set listener channel event listeners on mount.
   useEffect(()=>{
+    let isMounted = true;
     const listen = ()=> {
       if (client) {
-        handleChannelEvents(client);
+        if(isMounted) handleChannelEvents(client);
       }
     };
 
     listen();
 
-    return (()=> {})
+    return (()=> {isMounted = false;})
   },[client, handleChannelEvents]);
 
 
   // log into main channel on mount
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(()=>{
+    let isMounted = true;
     const login = async()=> {
       console.log("login useEffect triggered..."); // for debug
       try {
-        if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
+        if (client && channels.length === 0 && isMounted) { // prevents rest of function from firing off again after mount
           // console.log(await client.getLocalChannels());
           // Will Error out if token has timed out!
           const mainChannel = await client.getChannelByUniqueName(currentTownID);
@@ -151,7 +146,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     login();
 
-    return (()=> {})
+    return (()=> {isMounted = false;})
   },[client, userName, currentTownID, channels, addChannel]);
 
 
