@@ -65,12 +65,18 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   };
 
   const scrollToBottom = useCallback(() => {
-    chatContainer.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainer.current) {
+      const scroll =
+        chatContainer.current.scrollHeight -
+        chatContainer.current.clientHeight;
+      chatContainer.current.scrollTo(0, scroll);
+    }
   }, [chatContainer]);
 
   // TODO fix linter issue
   useEffect(() => {
     scrollToBottom();
+    return(() => {});
   }, [messages, scrollToBottom]);
 
   const getMessageAuthor = (author: string) => {
@@ -85,11 +91,10 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     <>
       <Stack>
         <div ref={messagesEndRef}>
-          <Box maxH="500px" overflowY="scroll">
+          <Box maxH="500px" overflowY="scroll" ref={chatContainer}>
             {messages.map((message) =>
               <div key={message.sid}>
                 <b>{getMessageAuthor(message.author)}</b>:{message.body}
-                <div ref={chatContainer}/>
               </div>)
             }
           </Box>
