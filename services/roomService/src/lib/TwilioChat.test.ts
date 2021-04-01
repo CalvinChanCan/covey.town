@@ -81,16 +81,38 @@ describe('TwilioChat', ()=>{
         playerID,
         userName,
       };
-      await Client.create(token);
-      const responseInvite : InviteContext = (await twilioChat.sendInvite(response.sid, JSON.stringify(identity)));
+      const client = await Client.create(token);
+      const responseInvite : InviteContext = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
 
-      const invite = await responseInvite.toJSON();
+      const invite = responseInvite.toJSON();
       expect(invite.channelSid).toBe(response.sid);
       const responseInviteJSON = JSON.parse(invite.identity);
       expect(responseInviteJSON.playerID).toBe(identity.playerID);
       expect(responseInviteJSON.userName).toBe(identity.userName);
-      
+      const users = await client.getSubscribedUsers();
+      users.forEach(async user=>{
+        await user.unsubscribe();
+      });
+      const channels = await client.getSubscribedChannels();
+      channels.items.forEach(async channel=>{
+        await channel.leave();
+      });
+      await client.shutdown();
+      console.log(client.connectionState);
+    
     });
   });
 
+});
+
+describe('Create Channel With Bot', ()=>{
+  it('Test channel exists', async ()=>{
+    const friendlyName = nanoid();
+    const uniqueName = nanoid();
+    const response = await twilioChat.createChannelWithBot(friendlyName, uniqueName);
+    assert(response);
+    expect(response.friendlyName).toBe(friendlyName);
+    expect(response.uniqueName).toBe(uniqueName);
+    expect(response.sid).toBeDefined();
+  });
 });
