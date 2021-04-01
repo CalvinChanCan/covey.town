@@ -57,14 +57,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
         // Join the channel that you were invited to
         await channel.join();
-        await channel.sendMessage(`${userName} joined the chat`);
+        await channel.sendMessage(`joined the chat`);
         const getFirstMessage = await channel.getMessages();
 
         // Relies on the idea that the first message comes from the inviting user!
         setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
         setChannels(oldChannels =>[...oldChannels, channel])
       });
-  },[userName]);
+  },[]);
 
   const createPrivateChannelWithBot = async () => {
     await apiClient.createChatBotChannel({
