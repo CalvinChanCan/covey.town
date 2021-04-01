@@ -4,6 +4,7 @@ import {Socket} from 'socket.io';
 import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
 import {InviteContext} from 'twilio/lib/rest/chat/v2/service/channel/invite';
 import { assert } from 'console';
+import Client from 'twilio-chat';
 import TwilioVideo from './TwilioVideo';
 import Player from '../types/Player';
 import CoveyTownController from './CoveyTownController';
@@ -31,7 +32,7 @@ describe('TwilioChat', ()=>{
     uniqueName = nanoid();
     response = await twilioChat.createChannel(friendlyName, uniqueName);
   });
-  afterEach(async ()=>{
+  afterAll(async ()=>{
     const channels = await twilioChat.getChannels();
     channels.forEach(async channel=>{
       await twilioChat.deleteChannel(channel.sid);
@@ -66,7 +67,6 @@ describe('TwilioChat', ()=>{
   describe('Get Channels', ()=>{
     it('Test that created channel is in list', async ()=>{
       const responseGetChannels = await twilioChat.getChannels();
-      console.log(responseGetChannels);
       expect(responseGetChannels.find(channel => channel.sid === response.sid)).toStrictEqual(response);
       // expect(foundChannelInstance.sid).toBe(response.sid);
     });
@@ -76,15 +76,21 @@ describe('TwilioChat', ()=>{
     it('Test that invite sends', async ()=>{
       const playerID = nanoid();
       const userName = nanoid();
-      await twilioChat.getToken(playerID, userName);
+      const token = await twilioChat.getToken(playerID, userName);
       const identity = {
         playerID,
         userName,
       };
-      const responseInvite = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
-      console.log(responseInvite);
+      await Client.create(token);
+      const responseInvite : InviteContext = (await twilioChat.sendInvite(response.sid, JSON.stringify(identity)));
+
+      const invite = await responseInvite.toJSON();
+      expect(invite.channelSid).toBe(response.sid);
+      const responseInviteJSON = JSON.parse(invite.identity);
+      expect(responseInviteJSON.playerID).toBe(identity.playerID);
+      expect(responseInviteJSON.userName).toBe(identity.userName);
+      
     });
   });
-
 
 });
