@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import Twilio from 'twilio';
 import assert from 'assert';
 import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
-import {MessageInstance} from 'twilio/lib/rest/chat/v2/service/channel/message';
 import {InviteContext} from 'twilio/lib/rest/chat/v2/service/channel/invite';
 import IChatClient from './IChatClient';
 
@@ -120,23 +119,6 @@ export default class TwilioChat implements IChatClient {
       .channels
       .list();
     return response;
-  }
-
-  async sendMessage(channelSID: string, message: string): Promise<MessageInstance> {
-    const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
-      .channels(channelSID)
-      .messages
-      .create({
-        body: message,
-      });
-    return response;
-  }
-
-  async getMessages(channelSID: string): Promise<void> {
-    const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
-      .channels(channelSID)
-      .messages
-      .get(channelSID);
   }
 
   async sendInvite(channelSID: string, identity: string): Promise<InviteContext> {
