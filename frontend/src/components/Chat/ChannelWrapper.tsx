@@ -48,25 +48,26 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   },[channels]);
 
-
+  // handle leaving a channel
   const leaveChannel = async (uniqueName: string) => {
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
-      await channel.leave()
+      await channel.leave();
       console.log("Should have left channel ------------");
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
       setTabIndex(0);
     }
-  }
+  };
 
   // handle closing a private message
-  const handleCloseButtonPrivateMessage = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
+  const handleCloseButtonPrivateMessage = async (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
 
     // we are using other and current player because we want to ensure that neither player has the other on their list.
     const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
+
     setPrivateChannels(newPrivateChannels);
-    leaveChannel(uniqueName)
+    await leaveChannel(uniqueName);
   };
 
   // Handler for channel events
@@ -90,10 +91,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     channelClient.on('memberLeft', async (channel: Member) => {
       const members = JSON.parse(channel.channel.friendlyName);
       const {uniqueName} = channel.channel;
-      const {currentPlayer} = members.players;
-      const {otherPlayer} = members.players;
-      handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)
+      const {currentPlayer, otherPlayer} = members.players;
+      console.log("member left")
     });
+
 
   },[]);
 
@@ -128,7 +129,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     };
 
   }, [chatToken, currentTownFriendlyName]);
-
 
   // set listener channel event listeners on mount.
   useEffect(()=>{
