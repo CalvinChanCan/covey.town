@@ -38,7 +38,6 @@ describe('TwilioChat', ()=>{
       await twilioChat.deleteChannel(channel.sid);
     });
   });
-  
   describe('Create Channel', ()=>{
     it('Test that it connects to TwilioChat API and friendlyName and uniqueName are expected, sid is defined.', async ()=>{
       assert(response);
@@ -84,6 +83,10 @@ describe('TwilioChat', ()=>{
       const client = await Client.create(token);
       const responseInvite : InviteContext = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
 
+      const twilioChatClient = mock<TwilioChat>();
+      twilioChatClient.sendInvite(response.sid, JSON.stringify(identity));
+      expect(twilioChatClient).toBeCalled();
+
       const invite = responseInvite.toJSON();
       expect(invite.channelSid).toBe(response.sid);
       const responseInviteJSON = JSON.parse(invite.identity);
@@ -99,7 +102,7 @@ describe('TwilioChat', ()=>{
       });
       await client.shutdown();
       console.log(client.connectionState);
-    
+
     });
   });
 
