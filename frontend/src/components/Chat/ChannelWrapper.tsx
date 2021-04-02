@@ -1,20 +1,12 @@
-// handle channels in this file- wrap chatscreen in tab/tabpanels
-// how to store channels and messages? I guess I can have 1 array of channels, then have chatscreen get the messages.
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import axios from 'axios';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {
   Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu,
-  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast, CloseButton
+  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast,
 } from "@chakra-ui/react";
-
-
-import {nanoid} from 'nanoid';
-import {use} from "matter";
-
-// for saving the files
-import { saveAs } from 'file-saver';
+import {CloseIcon} from '@chakra-ui/icons'
+import {saveAs} from 'file-saver';
 
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
@@ -33,14 +25,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient} = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, myPlayerID, apiClient } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
 
   const handleTabsChange = useCallback((index) => {
     setTabIndex(index)
-  },[]);
+  }, []);
 
   // checks if channel already exists, then adds to channels array if not already exists.
   const addChannel = useCallback((newChannel: Channel) => {
@@ -48,26 +40,26 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     if (!exists) {
       setChannels(old => [...old, newChannel]);
     }
-  },[channels]);
+  }, [channels]);
 
   // Handler for channel events
-  const handleChannelEvents = useCallback(async(channelClient : Client)=>{
-      channelClient.on('channelJoined', async (joinedChannel: Channel) => {
-        console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
-      });
+  const handleChannelEvents = useCallback(async (channelClient: Client) => {
+    channelClient.on('channelJoined', async (joinedChannel: Channel) => {
+      console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
+    });
 
-      channelClient.on('channelInvited', async (channel: Channel) => {
-        console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
-        // Join the channel that you were invited to
-        await channel.join();
-        await channel.sendMessage(`joined the chat`);
-        const getFirstMessage = await channel.getMessages();
+    channelClient.on('channelInvited', async (channel: Channel) => {
+      console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
+      // Join the channel that you were invited to
+      await channel.join();
+      await channel.sendMessage(`joined the chat`);
+      const getFirstMessage = await channel.getMessages();
 
-        // Relies on the idea that the first message comes from the inviting user!
-        setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
-        setChannels(oldChannels =>[...oldChannels, channel])
-      });
-  },[]);
+      // Relies on the idea that the first message comes from the inviting user!
+      setPrivateChannels(oldUsers => [...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
+      setChannels(oldChannels => [...oldChannels, channel])
+    });
+  }, []);
 
   const createPrivateChannelWithBot = async () => {
     await apiClient.createChatBotChannel({
@@ -113,8 +105,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }
 
   // set listener channel event listeners on mount.
-  useEffect(()=>{
-    const listen = ()=> {
+  useEffect(() => {
+    const listen = () => {
       if (client) {
         handleChannelEvents(client);
       }
@@ -122,14 +114,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     listen();
 
-    return (()=> {})
-  },[client, handleChannelEvents]);
+    return (() => {
+    })
+  }, [client, handleChannelEvents]);
 
 
   // log into main channel on mount
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
-  useEffect(()=>{
-    const login = async()=> {
+  useEffect(() => {
+    const login = async () => {
       console.log("login useEffect triggered..."); // for debug
       try {
         if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
@@ -138,21 +131,24 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           const mainChannel = await client.getChannelByUniqueName(currentTownID);
           console.log(mainChannel);
           console.log(`${userName}'s status for ${mainChannel.friendlyName} is ${mainChannel.status}`); // for debug
-          if(mainChannel.status !== "joined"){
+          if (mainChannel.status !== "joined") {
             await mainChannel.join();
-          };
+          }
+          ;
           addChannel(mainChannel);
           await mainChannel.sendMessage(`${userName} has joined the main chat`);
-        };
-      } catch (error){
+        }
+        ;
+      } catch (error) {
         throw new Error(`Unable to join channel for town ${error}`);
       }
     };
 
     login();
 
-    return (()=> {})
-  },[client, userName, currentTownID, channels, addChannel]);
+    return (() => {
+    })
+  }, [client, userName, currentTownID, channels, addChannel]);
 
 
   // Renders channels tabs based on channels array.
@@ -163,10 +159,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     let tabName;
     try {
-      const { players: {
-        currentPlayer,
-        otherPlayer,
-      }} = JSON.parse(friendlyName);
+      const {
+        players: {
+          currentPlayer,
+          otherPlayer,
+        }
+      } = JSON.parse(friendlyName);
       if (currentPlayer.userName !== userName) {
         tabName = currentPlayer.userName;
       } else {
@@ -175,13 +173,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} <CloseButton onClick={() => leaveChannel(uniqueName)}/>
+          {`Private Message with ${tabName}`} <CloseIcon onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       )
     } catch {
       return friendlyName === myPlayerID ? (
         <Tab key={uniqueName}>
-          Help <CloseButton onClick={() => leaveChannel(uniqueName)}/>
+          Help <CloseIcon onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       ) : (
         <Tab key={uniqueName}>
@@ -206,7 +204,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Private messaging work
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
 
-    setPrivateChannels(oldUsers =>[...oldUsers, playerToPM.id]);
+    setPrivateChannels(oldUsers => [...oldUsers, playerToPM.id]);
     await apiClient.createPrivateChatChannel({
       currentPlayerID,
       otherPlayerID: playerToPM.id,
@@ -222,12 +220,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   const renderPrivateMessageList = filteredPlayerList.map(player => (
     <MenuItemOption key={player.id} value={player.id}
-                    onClick={() =>{createPrivateChannelFromMenu(myPlayerID, player)}}>{player.userName}</MenuItemOption>
+                    onClick={() => {
+                      createPrivateChannelFromMenu(myPlayerID, player)
+                    }}>{player.userName}</MenuItemOption>
   ));
 
   // Logs Work - This could be susceptible to massive chat logs since.
   const getTownChatLogs = async () => {
-    if(client) {
+    if (client) {
 
       // get the channel, the messages and create a chatLog array
       const mainChannel = await client.getChannelByUniqueName(currentTownID);
@@ -235,9 +235,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const chatLog: BlobPart[] | undefined = [];
 
       // fill the array with formatted messages
-      messages.items.map(message =>(
-        chatLog.push(`${message.dateCreated}: ${message.author.split(',')[1].replace('}','').replaceAll('"','')}:${message.body}\n`)
-    ));
+      messages.items.map(message => (
+        chatLog.push(`${message.dateCreated}: ${message.author.split(',')[1].replace('}', '').replaceAll('"', '')}:${message.body}\n`)
+      ));
       // make a blob of the array, and save it.
       const blob = new Blob(chatLog, {type: "text/plain;charset=utf-8"});
       saveAs(blob, `Town_Chat_Logs.txt`);
