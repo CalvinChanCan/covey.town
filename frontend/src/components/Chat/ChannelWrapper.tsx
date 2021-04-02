@@ -54,16 +54,17 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       });
 
       channelClient.on('channelInvited', async (channel: Channel) => {
-        console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
-        // Join the channel that you were invited to
-        await channel.join();
-        await channel.sendMessage(`joined the chat`);
-        const getFirstMessage = await channel.getMessages();
+      console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
+      // Join the channel that you were invited to
+      await channel.join();
+      await channel.sendMessage(`joined the chat`);
+      const getFirstMessage = await channel.getMessages();
 
-        // Relies on the idea that the first message comes from the inviting user!
-        setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
-        setChannels(oldChannels =>[...oldChannels, channel])
-      });
+      // Relies on the idea that the first message comes from the inviting user!
+      setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
+      setChannels(oldChannels =>[...oldChannels, channel])
+    });
+      
   },[]);
 
   const createPrivateChannelWithBot = async () => {
@@ -102,7 +103,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
       await channel.leave()
-      console.log("Should have left channel ------------")
+      console.log("Should have left channel ------------");
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
       setTabIndex(0);

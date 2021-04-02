@@ -243,48 +243,47 @@ describe('TownsServiceAPIREST', () => {
   describe('CoveyTownChat', () => {
     it('Should create a new private chat channel', async () => {
 
-      // TODO issues with this test at the moment
-      // const testTown = await createTownForTesting(undefined, true);
-      //
-      // const res1 = await apiClient.joinTown({
-      //   userName: nanoid(),
-      //   coveyTownID: testTown.coveyTownID,
-      // });
-      //
-      // const res2 = await apiClient.joinTown({
-      //   userName: nanoid(),
-      //   coveyTownID: testTown.coveyTownID,
-      // });
-      //
-      // const client1 = await Client.create(res1.providerChatToken);
-      // const client2 = await Client.create(res2.providerChatToken);
-      //
-      // client1.on('channelInvited', async (channel: Channel) => {
-      //   await channel.join();
-      // });
-      //
-      // client2.on('channelInvited', async (channel: Channel) => {
-      //   await channel.join();
-      // });
-      //
-      // const response = await apiClient.createPrivateChatChannel({
-      //   currentPlayerID: res1.coveyUserID,
-      //   coveyTownID: testTown.coveyTownID,
-      //   otherPlayerID: res2.coveyUserID,
-      // });
-      //
-      // const controller = CoveyTownsStore.getInstance().getControllerForTown(testTown.coveyTownID);
-      //
-      // assert(controller);
-      // const privateChannel = controller.getPrivateChannels().find(channel => channel.uniqueName === response.uniqueName);
-      //
-      // assert(privateChannel);
-      // const members = privateChannel.members().list.length;
-      //
-      // expect(members).toBe(2);
-      //
-      // const channels = await client1.getSubscribedChannels();
-      // console.log(channels);
+      const testTown = await createTownForTesting(undefined, true);
+
+      const res1 = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: testTown.coveyTownID,
+      });
+
+      const res2 = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: testTown.coveyTownID,
+      });
+
+      const client1 = await Client.create(res1.providerChatToken);
+      const client2 = await Client.create(res2.providerChatToken);
+
+      client1.on('channelInvited', async (channel: Channel) => {
+        await channel.join();
+      });
+
+      client2.on('channelInvited', async (channel: Channel) => {
+        await channel.join();
+      });
+
+      const response = await apiClient.createPrivateChatChannel({
+        currentPlayerID: res1.coveyUserID,
+        coveyTownID: testTown.coveyTownID,
+        otherPlayerID: res2.coveyUserID,
+      });
+
+      const controller = CoveyTownsStore.getInstance().getControllerForTown(testTown.coveyTownID);
+
+      assert(controller);
+      const privateChannel = controller.getPrivateChannels().find(channel => channel.uniqueName === response.uniqueName);
+
+      assert(privateChannel);
+      const members = privateChannel.members().list.length;
+
+      expect(members).toBe(2);
+
+      const channels = await client1.getSubscribedChannels();
+      console.log(channels.items);
     });
   });
 });
