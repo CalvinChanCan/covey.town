@@ -256,6 +256,10 @@ describe('TownsServiceAPIREST', () => {
       const mockClient = mock<TownsServiceClient>();
 
       const mockUniqueName = nanoid();
+
+      const mockResponse = {
+        uniqueName: mockUniqueName,
+      };
       mockClient.createPrivateChatChannel.mockReturnValue(Promise.resolve({
         uniqueName: mockUniqueName,
       }));
@@ -266,7 +270,7 @@ describe('TownsServiceAPIREST', () => {
         otherPlayerID: res2.coveyUserID,
       });
 
-      expect(response).toBe(mockUniqueName);
+      expect(response).toStrictEqual(mockResponse);
     });
   });
 });
