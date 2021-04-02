@@ -13,6 +13,7 @@ import {
 // for saving the files
 import { saveAs } from 'file-saver';
 
+import {Member} from "twilio-chat/lib/member";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -47,6 +48,27 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   },[channels]);
 
+
+  const leaveChannel = async (uniqueName: string) => {
+    if (client) {
+      const channel = await client.getChannelByUniqueName(uniqueName);
+      await channel.leave()
+      console.log("Should have left channel ------------");
+      const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
+      setChannels(remainingChannels);
+      setTabIndex(0);
+    }
+  }
+
+  // handle closing a private message
+  const handleCloseButtonPrivateMessage = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
+
+    // we are using other and current player because we want to ensure that neither player has the other on their list.
+    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
+    setPrivateChannels(newPrivateChannels);
+    leaveChannel(uniqueName)
+  };
+
   // Handler for channel events
   const handleChannelEvents = useCallback(async(channelClient : Client)=>{
       channelClient.on('channelJoined', async (joinedChannel: Channel) => {
@@ -64,7 +86,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
       setChannels(oldChannels =>[...oldChannels, channel])
     });
-      
+
+    channelClient.on('memberLeft', async (channel: Member) => {
+      const members = JSON.parse(channel.channel.friendlyName);
+      const {uniqueName} = channel.channel;
+      const {currentPlayer} = members.players;
+      const {otherPlayer} = members.players;
+      handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)
+    });
+
   },[]);
 
   const createPrivateChannelWithBot = async () => {
@@ -99,26 +129,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   }, [chatToken, currentTownFriendlyName]);
 
-  const leaveChannel = async (uniqueName: string) => {
-    if (client) {
-      const channel = await client.getChannelByUniqueName(uniqueName);
-      await channel.leave()
-      console.log("Should have left channel ------------");
-      const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
-      setChannels(remainingChannels);
-      setTabIndex(0);
-    }
-  }
-
-  // handle closing a private message
-  const handleCloseButtonPrivateMessage = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
-
-    // we are using other and current player because we want to ensure that neither player has the other on their list.
-    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
-    console.log(`This is private channels ${newPrivateChannels}`);
-    setPrivateChannels(newPrivateChannels);
-    leaveChannel(uniqueName)
-  }
 
   // set listener channel event listeners on mount.
   useEffect(()=>{
