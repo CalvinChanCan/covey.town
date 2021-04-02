@@ -1,12 +1,15 @@
 import Express from 'express';
 import CORS from 'cors';
 import http from 'http';
-import { nanoid } from 'nanoid';
+import {nanoid} from 'nanoid';
 import assert from 'assert';
-import { AddressInfo } from 'net';
+import {AddressInfo} from 'net';
 
-import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
+import Client from 'twilio-chat';
+import {Channel} from 'twilio-chat/lib/channel';
+import TownsServiceClient, {TownListResponse} from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
+import CoveyTownsStore from '../lib/CoveyTownsStore';
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -108,7 +111,7 @@ describe('TownsServiceAPIREST', () => {
 
   describe('CoveyTownDeleteAPI', () => {
     it('Throws an error if the password is invalid', async () => {
-      const { coveyTownID } = await createTownForTesting(undefined, true);
+      const {coveyTownID} = await createTownForTesting(undefined, true);
       try {
         await apiClient.deleteTown({
           coveyTownID,
@@ -120,7 +123,7 @@ describe('TownsServiceAPIREST', () => {
       }
     });
     it('Throws an error if the townID is invalid', async () => {
-      const { townUpdatePassword } = await createTownForTesting(undefined, true);
+      const {townUpdatePassword} = await createTownForTesting(undefined, true);
       try {
         await apiClient.deleteTown({
           coveyTownID: nanoid(),
@@ -132,7 +135,7 @@ describe('TownsServiceAPIREST', () => {
       }
     });
     it('Deletes a town if given a valid password and town, no longer allowing it to be joined or listed', async () => {
-      const { coveyTownID, townUpdatePassword } = await createTownForTesting(undefined, true);
+      const {coveyTownID, townUpdatePassword} = await createTownForTesting(undefined, true);
       await apiClient.deleteTown({
         coveyTownID,
         coveyTownPassword: townUpdatePassword,
@@ -235,6 +238,53 @@ describe('TownsServiceAPIREST', () => {
       expect(res2.coveyUserID)
         .toBeDefined();
 
+    });
+  });
+  describe('CoveyTownChat', () => {
+    it('Should create a new private chat channel', async () => {
+
+      // TODO issues with this test at the moment
+      // const testTown = await createTownForTesting(undefined, true);
+      //
+      // const res1 = await apiClient.joinTown({
+      //   userName: nanoid(),
+      //   coveyTownID: testTown.coveyTownID,
+      // });
+      //
+      // const res2 = await apiClient.joinTown({
+      //   userName: nanoid(),
+      //   coveyTownID: testTown.coveyTownID,
+      // });
+      //
+      // const client1 = await Client.create(res1.providerChatToken);
+      // const client2 = await Client.create(res2.providerChatToken);
+      //
+      // client1.on('channelInvited', async (channel: Channel) => {
+      //   await channel.join();
+      // });
+      //
+      // client2.on('channelInvited', async (channel: Channel) => {
+      //   await channel.join();
+      // });
+      //
+      // const response = await apiClient.createPrivateChatChannel({
+      //   currentPlayerID: res1.coveyUserID,
+      //   coveyTownID: testTown.coveyTownID,
+      //   otherPlayerID: res2.coveyUserID,
+      // });
+      //
+      // const controller = CoveyTownsStore.getInstance().getControllerForTown(testTown.coveyTownID);
+      //
+      // assert(controller);
+      // const privateChannel = controller.getPrivateChannels().find(channel => channel.uniqueName === response.uniqueName);
+      //
+      // assert(privateChannel);
+      // const members = privateChannel.members().list.length;
+      //
+      // expect(members).toBe(2);
+      //
+      // const channels = await client1.getSubscribedChannels();
+      // console.log(channels);
     });
   });
 });
