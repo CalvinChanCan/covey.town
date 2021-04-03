@@ -88,12 +88,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels(oldChannels =>[...oldChannels, channel])
     });
 
-    channelClient.on('memberLeft', async (channel: Member) => {
-      const members = JSON.parse(channel.channel.friendlyName);
-      const {uniqueName} = channel.channel;
-      const {currentPlayer, otherPlayer} = members.players;
-      console.log("member left")
-    });
+      channelClient.on('memberLeft', async (channel: Member) => {
+        const members = JSON.parse(channel.channel.friendlyName);
+        const {uniqueName} = channel.channel;
+        const {currentPlayer, otherPlayer} = members.players;
+        console.log("member left")
+      });
 
 
   },[]);
@@ -173,8 +173,37 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[client, userName, currentTownID, channels, addChannel]);
 
 
+  // the purpose of the function is to check if two players are both in the players list
+  const checkPlayersExistence = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }) => {
+
+    const filtered = players.filter(player => player.id === otherPlayer.playerID || player.id === currentPlayer.playerID);
+
+    return filtered.length >=2;
+  };
+
+  // creates a filtered channel list
+  const filteredChannelList = () => {
+    const listToFilter: Channel[] = [];
+    channels.map(channel => {
+      const {friendlyName} = channel;
+      try{
+        const { players: {
+          currentPlayer,
+          otherPlayer,
+        }} = JSON.parse(friendlyName);
+        if(checkPlayersExistence(currentPlayer,otherPlayer)){
+          listToFilter.push(channel)
+        }
+      } catch {
+        listToFilter.push(channel)
+      }
+      return listToFilter;
+    });
+    return listToFilter;
+  };
+
   // Renders channels tabs based on channels array.
-  const renderTabs = (channels).map(channel => {
+  const renderTabs = (filteredChannelList()).map(channel => {
     const {friendlyName, uniqueName} = channel;
 
     console.log(friendlyName);
@@ -191,11 +220,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         tabName = otherPlayer.userName;
       }
 
-      return (
-        <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} <CloseButton onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
-        </Tab>
-      )
+        return (
+          <Tab key={uniqueName}>
+            {`Private Message with ${tabName}`} <CloseButton onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
+          </Tab>
+        );
+
     } catch {
       return friendlyName === myPlayerID ? (
         <Tab key={uniqueName}>
@@ -211,14 +241,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   });
 
   // Renders each channel's chat screen.
-  const renderTabScreens = (channels).map(channel => {
+  const renderTabScreens = (filteredChannelList()).map(channel => {
     const {uniqueName} = channel;
-    return (
-      <TabPanel p={50} key={uniqueName}>
-        <ChatScreen channel={channel}/>
-      </TabPanel>
-    )
-  });
+      return (
+        <TabPanel p={50} key={uniqueName}>
+          <ChatScreen channel={channel}/>
+        </TabPanel>
+      )
+    });
 
 
   // Private messaging work
