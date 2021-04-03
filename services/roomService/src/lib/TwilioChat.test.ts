@@ -38,7 +38,7 @@ describe('TwilioChat', ()=>{
       await twilioChat.deleteChannel(channel.sid);
     });
   });
-  
+
   describe('Create Channel', ()=>{
     it('Test that it connects to TwilioChat API and friendlyName and uniqueName are expected, sid is defined.', async ()=>{
       assert(response);
@@ -81,25 +81,60 @@ describe('TwilioChat', ()=>{
         playerID,
         userName,
       };
-      const client = await Client.create(token);
-      const responseInvite : InviteContext = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
+      Client.create(token).then((client) => {
 
-      const invite = responseInvite.toJSON();
-      expect(invite.channelSid).toBe(response.sid);
-      const responseInviteJSON = JSON.parse(invite.identity);
-      expect(responseInviteJSON.playerID).toBe(identity.playerID);
-      expect(responseInviteJSON.userName).toBe(identity.userName);
-      const users = await client.getSubscribedUsers();
-      users.forEach(async user=>{
-        await user.unsubscribe();
+        twilioChat.sendInvite(response.sid, JSON.stringify(identity)).then((responseInvite) =>{
+          const invite = responseInvite.toJSON();
+          expect(invite.channelSid).toBe(response.sid);
+          const responseInviteJSON = JSON.parse(invite.identity);
+          expect(responseInviteJSON.playerID).toBe(identity.playerID);
+          expect(responseInviteJSON.userName).toBe(identity.userName);
+
+        }).then(client.shutdown);
+        // const users = await client.getSubscribedUsers();
+        // users.forEach(async user => {
+        //   await user.unsubscribe();
+        // });
+        // const channels = client.getSubscribedChannels();
+        // for (const channel of channels.items) {
+        //   await channel.leave();
+        // }
+        // console.log('000', client.connectionState);
+        // client.connectionState = 'disconnected';
+        // console.log('111', client.connectionState);
+        // await client.shutdown();
+        // console.log(client.connectionState);
       });
-      const channels = await client.getSubscribedChannels();
-      channels.items.forEach(async channel=>{
-        await channel.leave();
-      });
-      await client.shutdown();
-      console.log(client.connectionState);
-    
+
+
+
+
+      // const playerID = nanoid();
+      // const userName = nanoid();
+      // const token = await twilioChat.getToken(playerID, userName);
+      // const identity = {
+      //   playerID,
+      //   userName,
+      // };
+      // const client = await Client.create(token);
+      // const responseInvite : InviteContext = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
+      //
+      // const invite = responseInvite.toJSON();
+      // expect(invite.channelSid).toBe(response.sid);
+      // const responseInviteJSON = JSON.parse(invite.identity);
+      // expect(responseInviteJSON.playerID).toBe(identity.playerID);
+      // expect(responseInviteJSON.userName).toBe(identity.userName);
+      // const users = await client.getSubscribedUsers();
+      // users.forEach(async user=>{
+      //   await user.unsubscribe();
+      // });
+      // const channels = await client.getSubscribedChannels();
+      // channels.items.forEach(async channel=>{
+      //   await channel.leave();
+      // });
+      // await client.shutdown();
+      // console.log(client.connectionState);
+
     });
   });
 

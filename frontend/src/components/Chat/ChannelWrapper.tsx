@@ -8,6 +8,7 @@ import {
   Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu,
   MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast, CloseButton
 } from "@chakra-ui/react";
+import { CloseIcon } from '@chakra-ui/icons';
 
 
 import {nanoid} from 'nanoid';
@@ -175,7 +176,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} <CloseButton onClick={() => leaveChannel(uniqueName)}/>
+          {`Private Message with ${tabName}`} leftIcon=<CloseIcon onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       )
     } catch {
