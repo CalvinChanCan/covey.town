@@ -1,17 +1,18 @@
-import { nanoid } from 'nanoid';
-import { mock, mockReset } from 'jest-mock-extended';
-import { Socket } from 'socket.io';
-import { ChannelInstance } from 'twilio/lib/rest/chat/v2/service/channel';
-import { InviteContext } from 'twilio/lib/rest/chat/v2/service/channel/invite';
-import { assert } from 'console';
+import {nanoid} from 'nanoid';
+import {mock, mockReset} from 'jest-mock-extended';
+import {Socket} from 'socket.io';
+import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
+import {InviteContext, InviteInstance} from 'twilio/lib/rest/chat/v2/service/channel/invite';
+import {assert} from 'console';
 import Client from 'twilio-chat';
+import axios from 'axios';
 import TwilioVideo from './TwilioVideo';
 import Player from '../types/Player';
 import CoveyTownController from './CoveyTownController';
 import CoveyTownListener from '../types/CoveyTownListener';
-import { UserLocation } from '../CoveyTypes';
+import {UserLocation} from '../CoveyTypes';
 import PlayerSession from '../types/PlayerSession';
-import { townSubscriptionHandler } from '../requestHandlers/CoveyTownRequestHandlers';
+import {townSubscriptionHandler} from '../requestHandlers/CoveyTownRequestHandlers';
 import CoveyTownsStore from './CoveyTownsStore';
 import * as TestUtils from '../client/TestUtils';
 import TwilioChat from './TwilioChat';
@@ -38,7 +39,6 @@ describe('TwilioChat', () => {
       await twilioChat.deleteChannel(channel.sid);
     });
   });
-
   describe('Create Channel', () => {
     it('Test that it connects to TwilioChat API and friendlyName and uniqueName are expected, sid is defined.', async () => {
       assert(response);
@@ -68,6 +68,7 @@ describe('TwilioChat', () => {
     it('Test that created channel is in list', async () => {
       const responseGetChannels = await twilioChat.getChannels();
       expect(responseGetChannels.find(channel => channel.sid === response.sid)).toStrictEqual(response);
+      // expect(foundChannelInstance.sid).toBe(response.sid);
     });
   });
 
@@ -75,30 +76,25 @@ describe('TwilioChat', () => {
     it('Test that invite sends', async () => {
       const playerID = nanoid();
       const userName = nanoid();
-      const token = await twilioChat.getToken(playerID, userName);
       const identity = {
         playerID,
         userName,
       };
-      const client = await Client.create(token);
-      const responseInvite: InviteContext = await twilioChat.sendInvite(response.sid, JSON.stringify(identity));
 
-      const invite = responseInvite.toJSON();
-      expect(invite.channelSid).toBe(response.sid);
-      const responseInviteJSON = JSON.parse(invite.identity);
-      expect(responseInviteJSON.playerID).toBe(identity.playerID);
-      expect(responseInviteJSON.userName).toBe(identity.userName);
-      const users = await client.getSubscribedUsers();
-      users.forEach(async user => {
-        await user.unsubscribe();
-      });
-      const channels = await client.getSubscribedChannels();
-      channels.items.forEach(async channel => {
-        await channel.leave();
-      });
-      await client.shutdown();
-      console.log(client.connectionState);
+      const mockTwilioChat = mock<TwilioChat>();
+      const mockResponse = {
+        accountSid: nanoid(),
+        channelSid: nanoid(),
+        createdBy: nanoid(),
+        dateCreated: new Date(),
+        dateUpdated: new Date(),
+      };
+      mockTwilioChat.sendInvite.mockReturnValue(Promise.resolve(mockResponse));
+      const inviteResponse = await mockTwilioChat.sendInvite(response.sid, JSON.stringify(identity));
 
+      expect(inviteResponse).toBe(mockResponse);
+      expect(mockTwilioChat.sendInvite).toBeCalledWith(response.sid, JSON.stringify(identity));
+      expect(mockTwilioChat.sendInvite).toBeCalledTimes(1);
     });
   });
 
@@ -115,4 +111,3 @@ describe('Create Channel With Bot', () => {
     expect(response.sid).toBeDefined();
   });
 });
-
