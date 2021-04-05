@@ -8,6 +8,7 @@ import {
 import {CloseIcon} from '@chakra-ui/icons'
 import {saveAs} from 'file-saver';
 
+import { Member } from 'twilio-chat/lib/member';
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -25,7 +26,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName, myPlayerID, apiClient } = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, userName, players, myPlayerID, apiClient } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
@@ -42,24 +43,61 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }, [channels]);
 
+  const leaveChannel = async (uniqueName: string) => {
+    if (client) {
+      const channel = await client.getChannelByUniqueName(uniqueName);
+      await channel.leave()
+      console.log("Should have left channel ------------")
+      const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
+      setChannels(remainingChannels);
+      setTabIndex(0);
+    }
+  };
+
+    // handle closing a private message
+  const handleCloseButtonPrivateMessage = async (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
+
+    // we are using other and current player because we want to ensure that neither player has the other on their list.
+    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
+
+    setPrivateChannels(newPrivateChannels);
+    await leaveChannel(uniqueName);
+  };
+
   // Handler for channel events
-  const handleChannelEvents = useCallback(async (channelClient: Client) => {
+  const handleChannelEvents = useCallback(async(channelClient : Client)=>{
     channelClient.on('channelJoined', async (joinedChannel: Channel) => {
       console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
     });
 
     channelClient.on('channelInvited', async (channel: Channel) => {
-      console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
-      // Join the channel that you were invited to
-      await channel.join();
-      await channel.sendMessage(`joined the chat`);
-      const getFirstMessage = await channel.getMessages();
+    console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
+    // Join the channel that you were invited to
+    await channel.join();
+    await channel.sendMessage(`joined the chat`);
+    const getFirstMessage = await channel.getMessages();
 
-      // Relies on the idea that the first message comes from the inviting user!
-      setPrivateChannels(oldUsers => [...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
-      setChannels(oldChannels => [...oldChannels, channel])
+    // Relies on the idea that the first message comes from the inviting user!
+    setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
+    setChannels(oldChannels =>[...oldChannels, channel])
+  });
+
+    channelClient.on('memberLeft', async (member: Member) => {
+      const {identity, channel : leftChannel} = member;
+      if(identity !== channelClient.user.identity){
+        // const members = JSON.parse(member.channel.friendlyName);
+        const {playerID} = JSON.parse(identity);
+        // const {currentPlayer, otherPlayer} = members.players;
+        console.log(`${identity} left`);
+        leftChannel.leave();
+        setChannels(oldChannels => oldChannels.filter(old => old.uniqueName !== leftChannel.uniqueName));
+        setPrivateChannels(oldPrivateChannels => oldPrivateChannels.filter(player => player !== playerID));
+        setTabIndex(0);
+      }
     });
-  }, []);
+
+
+},[]);
 
   const createPrivateChannelWithBot = async () => {
     await apiClient.createChatBotChannel({
@@ -93,16 +131,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   }, [chatToken, currentTownFriendlyName]);
 
-  const leaveChannel = async (uniqueName: string) => {
-    if (client) {
-      const channel = await client.getChannelByUniqueName(uniqueName);
-      await channel.leave()
-      console.log("Should have left channel ------------")
-      const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
-      setChannels(remainingChannels);
-      setTabIndex(0);
-    }
-  }
 
   // set listener channel event listeners on mount.
   useEffect(() => {
@@ -126,7 +154,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       console.log("login useEffect triggered..."); // for debug
       try {
         if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
-          // console.log(await client.getLocalChannels());
+          
           // Will Error out if token has timed out!
           const mainChannel = await client.getChannelByUniqueName(currentTownID);
           console.log(mainChannel);
@@ -148,9 +176,38 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     })
   }, [client, userName, currentTownID, channels, addChannel]);
 
+  // the purpose of the function is to check if two players are both in the players list
+  const checkPlayersExistence = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }) => {
+
+    const filtered = players.filter(player => player.id === otherPlayer.playerID || player.id === currentPlayer.playerID);
+
+    return filtered.length >=2;
+  };
+
+  // creates a filtered channel list
+  const filteredChannelList = () => {
+    const listToFilter: Channel[] = [];
+    channels.map(channel => {
+      const {friendlyName} = channel;
+      try{
+        const { players: {
+          currentPlayer,
+          otherPlayer,
+        }} = JSON.parse(friendlyName);
+        if(checkPlayersExistence(currentPlayer,otherPlayer)){
+          listToFilter.push(channel)
+        }
+      } catch {
+        listToFilter.push(channel)
+      }
+      return listToFilter;
+    });
+    return listToFilter;
+  };
+
 
   // Renders channels tabs based on channels array.
-  const renderTabs = (channels).map(channel => {
+  const renderTabs = (filteredChannelList()).map(channel => {
     const {friendlyName, uniqueName} = channel;
 
     console.log(friendlyName);
@@ -171,7 +228,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       return (
         <Tab key={uniqueName}>
-          {`Private Message with ${tabName}`} leftIcon=<CloseIcon onClick={() => leaveChannel(uniqueName)}/>
+          {`Private Message with ${tabName}`} leftIcon=<CloseIcon onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
         </Tab>
       )
     } catch {
@@ -189,7 +246,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   });
 
   // Renders each channel's chat screen.
-  const renderTabScreens = (channels).map(channel => {
+  const renderTabScreens = (filteredChannelList()).map(channel => {
     const {uniqueName} = channel;
     return (
       <TabPanel p={50} key={uniqueName}>
@@ -203,11 +260,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
 
     setPrivateChannels(oldUsers => [...oldUsers, playerToPM.id]);
-    await apiClient.createPrivateChatChannel({
+    const privateMessage = await apiClient.createPrivateChatChannel({
       currentPlayerID,
       otherPlayerID: playerToPM.id,
       coveyTownID: currentTownID
     });
+    console.log(`Create Private Channel From Menu ${privateMessage}`);
   };
 
 
