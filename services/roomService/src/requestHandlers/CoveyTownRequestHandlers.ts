@@ -267,12 +267,19 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
 
       if (duplicate){
 
-        const identity = {
+        const identity1 = {
           playerID: currentPlayer.id,
           userName: currentPlayer.userName,
         };
 
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity));
+        const identity2 = {
+          playerID: otherPlayer.id,
+          userName: otherPlayer.userName,
+        };
+
+        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity1));
+        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity2));
+
         return {
           isOK: true,
           message: 'Private channel already exists',
