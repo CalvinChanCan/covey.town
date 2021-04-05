@@ -26,7 +26,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, userName, myPlayerID, apiClient } = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
