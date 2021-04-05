@@ -272,5 +272,32 @@ describe('TownsServiceAPIREST', () => {
 
       expect(response).toStrictEqual(mockResponse);
     });
+    it('Should create a private chat channel with a bot', async () => {
+
+      const testTown = await createTownForTesting(undefined, true);
+
+      const res1 = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: testTown.coveyTownID,
+      });
+
+      const mockClient = mock<TownsServiceClient>();
+
+      const mockUniqueName = nanoid();
+
+      const mockResponse = {
+        uniqueName: mockUniqueName,
+      };
+      mockClient.createChatBotChannel.mockReturnValue(Promise.resolve({
+        uniqueName: mockUniqueName,
+      }));
+
+      const response = await mockClient.createChatBotChannel({
+        coveyTownID: testTown.coveyTownID,
+        playerID: res1.coveyUserID,
+      });
+
+      expect(response).toStrictEqual(mockResponse);
+    });
   });
 });
