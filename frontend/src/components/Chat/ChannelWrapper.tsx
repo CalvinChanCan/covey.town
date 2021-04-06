@@ -47,6 +47,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const leaveChannel = async (uniqueName: string) => {
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
+      await channel.sendMessage(' has left the chat.');
       await channel.leave();
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
@@ -82,15 +83,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels(oldChannels =>[...oldChannels, channel])
     });
 
-      channelClient.on('channelLeft', async (channel: Channel) => {
-        await channel.sendMessage(' has left the chat.');
-        setTabIndex(0);
+      channelClient.on('channelLeft', async () => {
+          setTabIndex(0);
       });
 
       channelClient.on('channelRemoved', async () => {
         setTabIndex(0);
       });
-
 
   },[]);
 
@@ -142,13 +141,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     useEffect(() => {
       let isMounted = true;
       const disconnect = () => {
-        if(socket && mainChannel && isMounted){
-          socket.on("disconnect", async()=>{
-              await mainChannel.sendMessage(' has left the chat');
-              // console.log('disconnect message sent');
-              // await mainChannel.leave();
-          });
-        }
+          if(socket && mainChannel && isMounted){
+            socket.on("disconnect", async()=>{
+                await mainChannel.sendMessage(' has left the chat');
+                // console.log('disconnect message sent');
+                // await mainChannel.leave();
+            });
+          }
+
       };
   
       disconnect();
