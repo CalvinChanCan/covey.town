@@ -221,7 +221,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const renderTabs = (filteredChannelList()).map(channel => {
     const {friendlyName, uniqueName} = channel;
 
-    console.log(friendlyName);
+    // console.log(friendlyName);
 
     let tabName;
     try {
@@ -320,7 +320,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   return (
     <>
-      <Tabs index={tabIndex} onChange={handleTabsChange} variant = 'enclosed'>
+      <Tabs isManual index={tabIndex} onChange={handleTabsChange} variant = 'enclosed'>
         <TabList>
           {renderTabs}
         </TabList>

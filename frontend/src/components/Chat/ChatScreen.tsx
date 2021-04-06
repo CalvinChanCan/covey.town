@@ -131,7 +131,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     if(authorID === myPlayerID){
       return (
         <div key={message.sid} ref={endRef}>
-          <Text color='blue'><b>{`${authorString} (you)`}</b></Text>:{message.body}
+          <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
         </div>
       )} 
         return (
