@@ -148,11 +148,7 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
     case 'disconnect':
       state.socket?.disconnect();
       state.chatClient?.getChannelByUniqueName(state.currentTownID).then((channel: Channel) => {
-        channel.sendMessage("has left the chat").then(() => {
-          channel.leave().then(() => {
-            state.chatClient?.shutdown();
-          });
-        });
+        channel.sendMessage("has left the chat");
       })
       return defaultAppState();
     default:
