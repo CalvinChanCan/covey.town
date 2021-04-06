@@ -20,13 +20,13 @@ import useNearbyPlayers from "../../hooks/useNearbyPlayers";
  * @param chatToken the token used to create the Chat Client
  * @returns A React Component that displays the full chat window
  */
-export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.Element {
+export default function ChannelWrapper(): JSX.Element {
   const [client, setClient] = useState<Client>();
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient } = useCoveyAppState();
+  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient, chatClient } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
@@ -83,14 +83,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels(oldChannels =>[...oldChannels, channel])
     });
 
-      channelClient.on('memberLeft', async (channel: Member) => {
-        const members = JSON.parse(channel.channel.friendlyName);
-        const {uniqueName} = channel.channel;
-        const {currentPlayer, otherPlayer} = members.players;
-        console.log("member left")
-      });
-
-
   },[]);
 
   const createPrivateChannelWithBot = async () => {
@@ -109,9 +101,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setLoading(true);
       try {
 
-        const newClient = await Client.create(chatToken);
-        if (isMounted) {
-          setClient(newClient);
+        // const newClient = await Client.create(chatToken);
+        if (isMounted && chatClient) {
+          setClient(chatClient);
         }
         setLoading(false);
       } catch (error) {
@@ -123,7 +115,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       isMounted = false
     };
 
-  }, [chatToken, currentTownFriendlyName]);
+  }, [chatClient, currentTownFriendlyName]);
 
   // set listener channel event listeners on mount.
   useEffect(() => {
