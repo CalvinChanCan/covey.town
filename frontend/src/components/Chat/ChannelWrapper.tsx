@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {
@@ -8,7 +8,6 @@ import {
 import {CloseIcon} from '@chakra-ui/icons'
 import {saveAs} from 'file-saver';
 
-import {Member} from "twilio-chat/lib/member";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import ChatScreen from "./ChatScreen";
 import Player from "../../classes/Player";
@@ -25,14 +24,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const [mainChannelJoined, setMainChannelJoined] = useState<boolean>(false);
-  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient } = useCoveyAppState();
+  const [mainChannel, setMainChannel] = useState<Channel>();
+  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient, socket } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
 
   const handleTabsChange = useCallback((index) => {
-    setTabIndex(index)
+    setTabIndex(index);
+
   }, []);
 
   // checks if channel already exists, then adds to channels array if not already exists.
@@ -48,7 +48,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
       await channel.leave();
-      console.log("Should have left channel ------------");
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
       setTabIndex(0);
@@ -75,7 +74,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
       // Join the channel that you were invited to
       await channel.join();
-      await channel.sendMessage(`joined the chat`);
+      await channel.sendMessage(` joined the chat.`);
       const getFirstMessage = await channel.getMessages();
 
       // Relies on the idea that the first message comes from the inviting user!
@@ -83,11 +82,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels(oldChannels =>[...oldChannels, channel])
     });
 
-      channelClient.on('memberLeft', async (channel: Member) => {
-        const members = JSON.parse(channel.channel.friendlyName);
-        const {uniqueName} = channel.channel;
-        const {currentPlayer, otherPlayer} = members.players;
-        console.log("member left")
+      channelClient.on('channelLeft', async (channel: Channel) => {
+        await channel.sendMessage(' has left the chat.');
+        setTabIndex(0);
+      });
+
+      channelClient.on('channelRemoved', async () => {
+        setTabIndex(0);
       });
 
 
@@ -119,44 +120,62 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       }
     };
     logIn();
-    return () => {
-      isMounted = false
-    };
+    return () => {isMounted = false};
 
   }, [chatToken, currentTownFriendlyName]);
 
   // set listener channel event listeners on mount.
   useEffect(() => {
+    let isMounted = true;
     const listen = () => {
-      if (client) {
+      if (client && isMounted) {
         handleChannelEvents(client);
       }
     };
 
     listen();
 
-    return (() => {
-    })
+    return (() => {isMounted = false});
   }, [client, handleChannelEvents]);
+
+    // set listener for disconnect.
+    useEffect(() => {
+      let isMounted = true;
+      const disconnect = () => {
+        if(socket && mainChannel && isMounted){
+          socket.on("disconnect", async()=>{
+              await mainChannel.sendMessage(' has left the chat');
+              // console.log('disconnect message sent');
+              // await mainChannel.leave();
+          });
+        }
+      };
+  
+      disconnect();
+  
+      return (() => {isMounted = false});
+    }, [socket, mainChannel]);
 
 
   // log into main channel on mount
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(() => {
+    let isMounted = true;
     const login = async () => {
       console.log("login useEffect triggered..."); // for debug
       try {
-        if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
-          // console.log(await client.getLocalChannels());
-          // Will Error out if token has timed out!
-          const mainChannel = await client.getChannelByUniqueName(currentTownID);
+        if (client && channels.length === 0 && isMounted) { // prevents rest of function from firing off again after mount
+
+          const main = await client.getChannelByUniqueName(currentTownID);
+          setMainChannel(main);
           console.log(mainChannel);
-          console.log(`${userName}'s status for ${mainChannel.friendlyName} is ${mainChannel.status}`); // for debug
-          if (mainChannel.status !== "joined") {
-            await mainChannel.join();
+          if(mainChannel){
+            if (mainChannel.status !== "joined") {
+              await mainChannel.join();
+            }
+            addChannel(mainChannel);
+            await mainChannel.sendMessage(` has joined the main chat`);
           }
-          addChannel(mainChannel);
-          await mainChannel.sendMessage(`${userName} has joined the main chat`);
         }
       } catch (error) {
         throw new Error(`Unable to join channel for town ${error}`);
@@ -165,9 +184,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     login();
 
-    return (() => {
-    })
-  }, [client, userName, currentTownID, channels, addChannel]);
+    return (() => {isMounted = false});
+  }, [client, currentTownID, channels, addChannel, mainChannel]);
 
 
   // the purpose of the function is to check if two players are both in the players list
@@ -220,18 +238,18 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       }
 
         return (
-          <Tab key={uniqueName}>
+          <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
             {`Private Message with ${tabName}`} <CloseIcon onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
           </Tab>
         );
 
     } catch {
       return friendlyName === myPlayerID ? (
-        <Tab key={uniqueName}>
+        <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
           Help <CloseIcon onClick={() => leaveChannel(uniqueName)}/>
         </Tab>
       ) : (
-        <Tab key={uniqueName}>
+        <Tab key={uniqueName}_selected = {{bg: "#57c994"}}>
           Town Chat
         </Tab>
       );
@@ -242,8 +260,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Renders each channel's chat screen.
   const renderTabScreens = (filteredChannelList()).map(channel => {
     const {uniqueName} = channel;
+
       return (
-        <TabPanel p={50} key={uniqueName}>
+        <TabPanel p={50} key={uniqueName} bg = "#57c994">
           <ChatScreen channel={channel}/>
         </TabPanel>
       )
@@ -276,10 +295,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // Logs Work - This could be susceptible to massive chat logs since.
   const getTownChatLogs = async () => {
-    if (client) {
+    if (client && mainChannel) {
 
       // get the channel, the messages and create a chatLog array
-      const mainChannel = await client.getChannelByUniqueName(currentTownID);
       const messages = await mainChannel.getMessages();
       const chatLog: BlobPart[] | undefined = [];
 
@@ -302,7 +320,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   return (
     <>
-      <Tabs index={tabIndex} onChange={handleTabsChange}>
+      <Tabs index={tabIndex} onChange={handleTabsChange} variant = 'enclosed'>
         <TabList>
           {renderTabs}
         </TabList>

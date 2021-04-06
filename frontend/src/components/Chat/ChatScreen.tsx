@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState} from 'react';
 import {Channel} from 'twilio-chat/lib/channel';
-import { Button, Input, Stack, Flex } from "@chakra-ui/react";
+import { Button, Input, Stack, Flex, Text } from "@chakra-ui/react";
 import {Message} from 'twilio-chat/lib/message';
 
 import Video from "../../classes/Video/Video";
+import useCoveyAppState from '../../hooks/useCoveyAppState';
 
 
 /**
@@ -16,12 +17,16 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [thisChannel] = useState<Channel>(channel);
+  const {myPlayerID} = useCoveyAppState();
+
 
 
   // useEffect for message added listener
   useEffect(()=>{
+    let isMounted = true;
     console.log('calling message handler');
     const messageListener =()=>{
+      if(isMounted)
       thisChannel.on("messageAdded", (messageToAdd: Message) => {
         setMessages(old => [...old, messageToAdd]);
         console.log("message added listener has been called.")
@@ -29,7 +34,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       });
     };
     messageListener();
-    return (() => {});
+    return (() => {isMounted = false});
   }, [thisChannel]);
 
 
@@ -72,7 +77,6 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   };
 
 
-
   type ChatScrollPositionsType = { [chatId: string]: number };
 
   const [
@@ -111,10 +115,31 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     : false;
 
   useEffect(() => {
-    if (hasReachedBottom) {
-      scrollToBottom();
+    let isMounted = true;
+    const scroll = ()=>{
+      if (hasReachedBottom && isMounted) scrollToBottom();
     }
+    scroll();
+    return (() => {isMounted = false});
   }, [messages.length, hasReachedBottom, scrollToBottom]);
+
+  const renderMessages = messages.map(message => {
+    const {author} = message;
+    const authorID = JSON.parse(author).playerID;
+    // console.log(author);
+    const authorString = getMessageAuthor(author);
+    if(authorID === myPlayerID){
+      return (
+        <div key={message.sid} ref={endRef}>
+          <Text color='blue'><b>{`${authorString} (you)`}</b></Text>:{message.body}
+        </div>
+      )} 
+        return (
+          <div key={message.sid} ref={endRef}>
+            <b>{authorString}</b>:{message.body}
+          </div>
+        )
+  });
 
   return (
     <>
@@ -128,16 +153,13 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
                 flexGrow={1}
                 onScroll={handleScroll}>
             <Flex flex="1 1 auto"/>
-            {messages.map((message) =>
-              <div key={message.sid} ref={endRef} >
-                  <b>{getMessageAuthor(message.author)}</b>:{message.body}
-              </div>)
-            }
+            {renderMessages}
           </Flex>
           <Input w="90%" autoFocus
                  name="name"
                  placeholder=""
                  autoComplete="off"
+                 bg = "white"
                  onChange={(event) => setText(event.target.value)}
                  value={text}
                  onKeyPress={event => {
