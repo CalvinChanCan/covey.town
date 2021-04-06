@@ -119,7 +119,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       }
     };
     logIn();
-    return () => {isMounted = false};
+    return () => {
+      isMounted = false
+    };
 
   }, [chatToken, currentTownFriendlyName]);
 
@@ -144,8 +146,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           if(socket && mainChannel && isMounted){
             socket.on("disconnect", async()=>{
                 await mainChannel.sendMessage(' has left the chat');
-                // console.log('disconnect message sent');
-                // await mainChannel.leave();
+                client?.removeAllListeners();
             });
           }
 
@@ -154,7 +155,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       disconnect();
   
       return (() => {isMounted = false});
-    }, [socket, mainChannel]);
+    }, [socket, mainChannel, client]);
 
 
   // log into main channel on mount
@@ -164,7 +165,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     const login = async () => {
       console.log("login useEffect triggered..."); // for debug
       try {
-        if (client && channels.length === 0 && isMounted) { // prevents rest of function from firing off again after mount
+        // prevents rest of function from firing off again 
+        // if not check channels.length, join message will send twice!
+        if (client && channels.length === 0 && isMounted) { 
 
           const main = await client.getChannelByUniqueName(currentTownID);
           setMainChannel(main);
@@ -184,7 +187,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     login();
 
-    return (() => {isMounted = false});
+    return (() => {
+      isMounted = false
+    });
   }, [client, currentTownID, channels, addChannel, mainChannel]);
 
 

@@ -34,7 +34,10 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       });
     };
     messageListener();
-    return (() => {isMounted = false});
+    return (() => {
+      isMounted = false
+      thisChannel.removeAllListeners();
+    });
   }, [thisChannel]);
 
 
@@ -125,20 +128,29 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   const renderMessages = messages.map(message => {
     const {author} = message;
-    const authorID = JSON.parse(author).playerID;
-    // console.log(author);
     const authorString = getMessageAuthor(author);
+    if(author === "system"){
+      return (
+        <div key={message.sid} ref={endRef}>
+          <b>{authorString}</b>:{message.body}
+        </div>
+      )
+
+    }
+    const authorID = JSON.parse(author).playerID;
+    
     if(authorID === myPlayerID){
       return (
         <div key={message.sid} ref={endRef}>
           <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
         </div>
       )} 
-        return (
-          <div key={message.sid} ref={endRef}>
-            <b>{authorString}</b>:{message.body}
-          </div>
-        )
+    return (
+      <div key={message.sid} ref={endRef}>
+        <b>{authorString}</b>:{message.body}
+      </div>
+    )
+    
   });
 
   return (
