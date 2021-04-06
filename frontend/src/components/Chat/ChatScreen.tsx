@@ -144,6 +144,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
         <div key={message.sid} ref={endRef}>
           <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
         </div>
+<<<<<<< HEAD
       )} 
     return (
       <div key={message.sid} ref={endRef}>
@@ -151,6 +152,14 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       </div>
     )
     
+=======
+      )}
+        return (
+          <div key={message.sid} ref={endRef}>
+            <b>{authorString}</b>:{message.body}
+          </div>
+        )
+>>>>>>> 4c006294ab3ecf91b69da4c645b8d63b0f6b5f89
   });
 
   return (
