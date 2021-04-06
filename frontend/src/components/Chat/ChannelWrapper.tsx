@@ -138,7 +138,7 @@ export default function ChannelWrapper(): JSX.Element {
     const login = async () => {
       console.log("login useEffect triggered..."); // for debug
       try {
-        if (client && channels.length === 0) { // prevents rest of function from firing off again after mount
+        if (client) { // prevents rest of function from firing off again after mount
           // console.log(await client.getLocalChannels());
           // Will Error out if token has timed out!
           const mainChannel = await client.getChannelByUniqueName(currentTownID);
@@ -159,7 +159,7 @@ export default function ChannelWrapper(): JSX.Element {
 
     return (() => {
     })
-  }, [client, userName, currentTownID, channels, addChannel]);
+  }, [client, userName, currentTownID, addChannel]);
 
 
   // the purpose of the function is to check if two players are both in the players list
