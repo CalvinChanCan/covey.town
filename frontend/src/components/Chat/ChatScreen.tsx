@@ -34,7 +34,10 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       });
     };
     messageListener();
-    return (() => {isMounted = false});
+    return (() => {
+      isMounted = false
+      thisChannel.removeAllListeners();
+    });
   }, [thisChannel]);
 
 
@@ -133,7 +136,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
         <div key={message.sid} ref={endRef}>
           <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
         </div>
-      )} 
+      )}
         return (
           <div key={message.sid} ref={endRef}>
             <b>{authorString}</b>:{message.body}
