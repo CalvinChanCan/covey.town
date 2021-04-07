@@ -95,12 +95,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[]);
 
   const createPrivateChannelWithBot = async () => {
+    setLoading(true);
     await apiClient.createChatBotChannel({
       playerID: myPlayerID,
       coveyTownID: currentTownID,
     })
     setTabIndex(channels.length)
     setIsHelped(true)
+    setLoading(false);
   };
 
 
@@ -336,6 +338,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         </TabPanels>
       </Tabs>
       <Button
+        isLoading={loading}
+        loadingText="Getting Help..."
         onClick={createPrivateChannelWithBot}
         isDisabled={isHelped}
       >Help</Button>
