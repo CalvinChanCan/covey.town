@@ -47,6 +47,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const leaveChannel = async (uniqueName: string) => {
     if (client) {
       const channel = await client.getChannelByUniqueName(uniqueName);
+
       await channel.sendMessage(' has left the chat.');
       await channel.leave();
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
@@ -94,25 +95,25 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   },[]);
 
   const createPrivateChannelWithBot = async () => {
+    setLoading(true);
     await apiClient.createChatBotChannel({
       playerID: myPlayerID,
       coveyTownID: currentTownID,
     })
-    setTabIndex(channels.length)
+    setTabIndex(channels.length);
+    setLoading(false);
   };
 
 
   // Get client object on mount.
   useEffect(() => {
     const logIn = async () => {
-      setLoading(true);
       try {
 
         const newClient = await Client.create(chatToken);
 
         setClient(newClient);
 
-        setLoading(false);
       } catch (error) {
         throw new Error(`Unable to create client for ${currentTownFriendlyName}: \n${error}`);
       }
@@ -328,7 +329,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
-      <Button onClick={createPrivateChannelWithBot}>Help</Button>
+      <Button isLoading={loading} loadingText="Getting Help..." onClick={createPrivateChannelWithBot}>Help</Button>
       <Button onClick={getTownChatLogs}>Logs</Button>
 
       <Menu>
