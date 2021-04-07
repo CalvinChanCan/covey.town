@@ -348,14 +348,24 @@ export async function ChatBotCreateHandler(requestData: ChatBotCreateRequest): P
       };
 
       if (duplicate){
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity));
-        return {
-          isOK: true,
-          message: 'Help channel already exists for the player',
-          response: {
-            uniqueName: duplicate.uniqueName,
-          },
-        };
+        try {
+          await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity));
+          return {
+            isOK: true,
+            message: 'Help channel already exists for the player',
+            response: {
+              uniqueName: duplicate.uniqueName,
+            },
+          };
+        } catch (e) {
+          return {
+            isOK: true,
+            message: 'Player has already been invited!',
+            response: {
+              uniqueName: duplicate.uniqueName,
+            },
+          };
+        }
       }
 
       const response = await TwilioChat.getInstance().createChannelWithBot(targetPlayer.id, nanoid(5));

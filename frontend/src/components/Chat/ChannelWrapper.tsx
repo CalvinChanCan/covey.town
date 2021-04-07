@@ -24,6 +24,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [loading, setLoading] = useState<boolean>(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
+  const [isHelped, setIsHelped] = useState<boolean>(false);
   const [mainChannel, setMainChannel] = useState<Channel>();
   const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient, socket } = useCoveyAppState();
 
@@ -99,6 +100,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       coveyTownID: currentTownID,
     })
     setTabIndex(channels.length)
+    setIsHelped(true)
   };
 
 
@@ -217,6 +219,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     return listToFilter;
   };
 
+  const leaveHelpChannel = (uniqueName: string) => {
+    setIsHelped(false)
+    leaveChannel(uniqueName)
+  }
+
+
   // Renders channels tabs based on channels array.
   const renderTabs = (filteredChannelList()).map(channel => {
     const {friendlyName, uniqueName} = channel;
@@ -246,7 +254,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } catch {
       return friendlyName === myPlayerID ? (
         <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
-          Help <CloseIcon onClick={() => leaveChannel(uniqueName)}/>
+          Help <CloseIcon onClick={() => leaveHelpChannel(uniqueName) }/>
         </Tab>
       ) : (
         <Tab key={uniqueName}_selected = {{bg: "#57c994"}}>
@@ -256,7 +264,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
 
   });
-
   // Renders each channel's chat screen.
   const renderTabScreens = (filteredChannelList()).map(channel => {
     const {uniqueName} = channel;
@@ -328,7 +335,10 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
-      <Button onClick={createPrivateChannelWithBot}>Help</Button>
+      <Button
+        onClick={createPrivateChannelWithBot}
+        isDisabled={isHelped}
+      >Help</Button>
       <Button onClick={getTownChatLogs}>Logs</Button>
 
       <Menu>
