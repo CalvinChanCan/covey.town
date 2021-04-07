@@ -5,11 +5,9 @@ import {nanoid} from 'nanoid';
 import assert from 'assert';
 import {AddressInfo} from 'net';
 
-import Client from 'twilio-chat';
-import {Channel} from 'twilio-chat/lib/channel';
+import {mock} from 'jest-mock-extended';
 import TownsServiceClient, {TownListResponse} from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
-import CoveyTownsStore from '../lib/CoveyTownsStore';
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -255,35 +253,51 @@ describe('TownsServiceAPIREST', () => {
         coveyTownID: testTown.coveyTownID,
       });
 
-      const client1 = await Client.create(res1.providerChatToken);
-      const client2 = await Client.create(res2.providerChatToken);
+      const mockClient = mock<TownsServiceClient>();
 
-      client1.on('channelInvited', async (channel: Channel) => {
-        await channel.join();
-      });
+      const mockUniqueName = nanoid();
 
-      client2.on('channelInvited', async (channel: Channel) => {
-        await channel.join();
-      });
+      const mockResponse = {
+        uniqueName: mockUniqueName,
+      };
+      mockClient.createPrivateChatChannel.mockReturnValue(Promise.resolve({
+        uniqueName: mockUniqueName,
+      }));
 
-      const response = await apiClient.createPrivateChatChannel({
+      const response = await mockClient.createPrivateChatChannel({
         currentPlayerID: res1.coveyUserID,
         coveyTownID: testTown.coveyTownID,
         otherPlayerID: res2.coveyUserID,
       });
 
-      const controller = CoveyTownsStore.getInstance().getControllerForTown(testTown.coveyTownID);
+      expect(response).toStrictEqual(mockResponse);
+    });
+    it('Should create a private chat channel with a bot', async () => {
 
-      assert(controller);
-      const privateChannel = controller.getPrivateChannels().find(channel => channel.uniqueName === response.uniqueName);
+      const testTown = await createTownForTesting(undefined, true);
 
-      assert(privateChannel);
-      const members = privateChannel.members().list.length;
+      const res1 = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: testTown.coveyTownID,
+      });
 
-      expect(members).toBe(2);
+      const mockClient = mock<TownsServiceClient>();
 
-      const channels = await client1.getSubscribedChannels();
-      console.log(channels.items);
+      const mockUniqueName = nanoid();
+
+      const mockResponse = {
+        uniqueName: mockUniqueName,
+      };
+      mockClient.createChatBotChannel.mockReturnValue(Promise.resolve({
+        uniqueName: mockUniqueName,
+      }));
+
+      const response = await mockClient.createChatBotChannel({
+        coveyTownID: testTown.coveyTownID,
+        playerID: res1.coveyUserID,
+      });
+
+      expect(response).toStrictEqual(mockResponse);
     });
   });
 });
