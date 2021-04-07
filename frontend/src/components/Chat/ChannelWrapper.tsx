@@ -104,15 +104,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // Get client object on mount.
   useEffect(() => {
-    let isMounted = true;
     const logIn = async () => {
       setLoading(true);
       try {
 
         const newClient = await Client.create(chatToken);
-        if (isMounted) {
-          setClient(newClient);
-        }
+
+        setClient(newClient);
+
         setLoading(false);
       } catch (error) {
         throw new Error(`Unable to create client for ${currentTownFriendlyName}: \n${error}`);
@@ -120,30 +119,27 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     };
     logIn();
     return () => {
-      isMounted = false
     };
 
   }, [chatToken, currentTownFriendlyName]);
 
   // set listener channel event listeners on mount.
   useEffect(() => {
-    let isMounted = true;
     const listen = () => {
-      if (client && isMounted) {
+      if (client) {
         handleChannelEvents(client);
       }
     };
 
     listen();
 
-    return (() => {isMounted = false});
+    return (() => {});
   }, [client, handleChannelEvents]);
 
     // set listener for disconnect.
     useEffect(() => {
-      let isMounted = true;
       const disconnect = () => {
-          if(socket && mainChannel && isMounted){
+          if(socket && mainChannel){
             socket.on("disconnect", async()=>{
                 await mainChannel.sendMessage(' has left the chat');
                 client?.removeAllListeners();
@@ -151,23 +147,22 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           }
 
       };
-  
+
       disconnect();
-  
-      return (() => {isMounted = false});
+
+      return (() => {});
     }, [socket, mainChannel, client]);
 
 
   // log into main channel on mount
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(() => {
-    let isMounted = true;
     const login = async () => {
       console.log("login useEffect triggered..."); // for debug
       try {
-        // prevents rest of function from firing off again 
+        // prevents rest of function from firing off again
         // if not check channels.length, join message will send twice!
-        if (client && channels.length === 0 && isMounted) { 
+        if (client && channels.length === 0) {
 
           const main = await client.getChannelByUniqueName(currentTownID);
           setMainChannel(main);
@@ -188,7 +183,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     login();
 
     return (() => {
-      isMounted = false
+
     });
   }, [client, currentTownID, channels, addChannel, mainChannel]);
 

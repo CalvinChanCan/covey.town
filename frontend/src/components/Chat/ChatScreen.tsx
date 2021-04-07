@@ -23,19 +23,18 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   // useEffect for message added listener
   useEffect(()=>{
-    let isMounted = true;
+
     console.log('calling message handler');
     const messageListener =()=>{
-      if(isMounted)
-      thisChannel.on("messageAdded", (messageToAdd: Message) => {
-        setMessages(old => [...old, messageToAdd]);
-        console.log("message added listener has been called.")
-        // console.log(messages);
+
+    thisChannel.on("messageAdded", (messageToAdd: Message) => {
+      setMessages(old => [...old, messageToAdd]);
+      console.log("message added listener has been called.")
+      // console.log(messages);
       });
     };
     messageListener();
     return (() => {
-      isMounted = false
       thisChannel.removeAllListeners();
     });
   }, [thisChannel]);
@@ -43,17 +42,15 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   // useEffect for initializing old messages to chatbox
   useEffect(() => {
-    let isMounted = true;
     const handleChannel = async () => {
       const previousMessages = await thisChannel.getMessages();
       const mes: Message[] = previousMessages.items;
-      if (isMounted) setMessages(mes);
+      setMessages(mes);
       console.log(`Channel got messages ${mes}`);
     };
 
     handleChannel();
     return () => {
-      isMounted = false
     };
   }, [thisChannel]);
 
@@ -118,12 +115,11 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     : false;
 
   useEffect(() => {
-    let isMounted = true;
     const scroll = ()=>{
-      if (hasReachedBottom && isMounted) scrollToBottom();
+      if (hasReachedBottom) scrollToBottom();
     }
     scroll();
-    return (() => {isMounted = false});
+    return (() => {});
   }, [messages.length, hasReachedBottom, scrollToBottom]);
 
   const renderMessages = messages.map(message => {
@@ -138,19 +134,19 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
     }
     const authorID = JSON.parse(author).playerID;
-    
+
     if(authorID === myPlayerID){
       return (
         <div key={message.sid} ref={endRef}>
           <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
         </div>
-      )} 
+      )}
     return (
       <div key={message.sid} ref={endRef}>
         <b>{authorString}</b>:{message.body}
       </div>
     )
-    
+
   });
 
   return (
