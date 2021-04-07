@@ -1,6 +1,8 @@
 # Design
 
+## Architecture
 ![Covey.Town Chat Architecture](docs/chat-architecture.png)
+
 
 In planning to design for a chat feature, we had considered several options: 
 1) Using websockets similar to how the player movements was implemented
@@ -11,6 +13,10 @@ We decided to use the Twilio Chat API.
 
 ## Overview
 The Twilio Programmable Chat service has a REST API and an SDK. As best practices mentioned by the Twilio Docs, the backend service should authenticate a user token to send to the frontend client to connect to the service. The Twilio REST API is used to create, delete, update rooms, as well inviting players into a private channel. By putting this logic to the backend, we can apply our business logic and increase security to prevent the frontend client to send malicious/unauthorized usage of the chat.
+
+## UML
+![Covey.Town UML](docs/chat-UML.png)
+We created the Interface IChatClient to enable the backend to swap chat providers. The only required method is getToken for the backend to authorize a session token to the frontend client to connect. The TwilioChat class implements the IChatClient interface which has the specific methods to manage the Twilio chat service. The CoveyTownController now has a TwilioChat client to perform methods when certain Covey Town requests occur. For example, if a create town request occurred, the CoveyTownController would use the TwilioChat client to also create a public channel for that town.
 
 ## Specific changes to the backend
 On the backend, we modified `CoveyTownController.ts`, the request handler `CoveyTownRequestHandlers.ts` and the router `towns.ts`, and added `TwilioChat.ts`.
@@ -30,5 +36,5 @@ Other handlers we added were to create a private channel for private messaging b
 The TwilioChat Rest client allows the backend to  create new channels, invite players to a channel, add bots to a channel.  
 
 
-## Specific changes to the backend
+## Specific changes to the frontend
 
