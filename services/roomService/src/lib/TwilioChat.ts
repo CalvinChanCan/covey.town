@@ -9,6 +9,17 @@ dotenv.config();
 // 1 hour: each client will time out after 1 hour of video and need to refresh
 const MAX_ALLOWED_SESSION_DURATION = 3600;
 
+/**
+ * Response from the server after sending an invite to the player to join the channel
+ */
+export interface InviteResponse {
+  channelSid: string;
+  dateCreated: Date;
+  createdBy: string;
+  accountSid: string;
+  dateUpdated: Date
+}
+
 export default class TwilioChat implements IChatClient {
   private _twilioClient: Twilio.Twilio;
 
@@ -63,7 +74,9 @@ export default class TwilioChat implements IChatClient {
   }
 
   /**
-   * Authorizes a user connecting to the chat
+   * Authorizes a user connecting to the chat by generate a token.
+   * @param playerID the covey town generated playerID for a specific player
+   * @param userName the username of the player when they entered a town
    */
   async getToken(playerID: string, userName: string): Promise<string> {
     const identity = {
@@ -84,6 +97,11 @@ export default class TwilioChat implements IChatClient {
     return token.toJwt();
   }
 
+  /**
+   * Creates a new channel for a players to join.
+   * @param friendlyName an easy to read string for the name of the channel
+   * @param uniqueName a unique string to identify the channel
+   */
   async createChannel(friendlyName: string, uniqueName: string): Promise<ChannelInstance> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
@@ -97,6 +115,11 @@ export default class TwilioChat implements IChatClient {
     return response;
   }
 
+  /**
+   * Updates the friendly name of the channel.
+   * @param channelSID a unique identifier of a channel
+   * @param updatedChannelName the updated friendly name of the channel
+   */
   async updateChannel(channelSID: string, updatedChannelName: string): Promise<ChannelInstance> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels(channelSID)
@@ -106,6 +129,10 @@ export default class TwilioChat implements IChatClient {
     return response;
   }
 
+  /**
+   * Deletes a channel
+   * @param channelSID a unique identifier of a channel
+   */
   async deleteChannel(channelSID: string): Promise<boolean> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels(channelSID)
@@ -113,6 +140,9 @@ export default class TwilioChat implements IChatClient {
     return response;
   }
 
+  /**
+   * Gets an array of all channels.
+   */
   async getChannels(): Promise<ChannelInstance[]> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
@@ -120,7 +150,12 @@ export default class TwilioChat implements IChatClient {
     return response;
   }
 
-  async sendInvite(channelSID: string, identity: string): Promise<{ channelSid: string; dateCreated: Date; createdBy: string; accountSid: string; dateUpdated: Date }> {
+  /**
+   * Sends a invite to the playher to join a specified channel.
+   * @param channelSID a unique identifier of a channel
+   * @param identity the name of the player to be invited
+   */
+  async sendInvite(channelSID: string, identity: string): Promise<InviteResponse> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels(channelSID)
       .invites
@@ -136,10 +171,15 @@ export default class TwilioChat implements IChatClient {
     };
   }
 
+  /**
+   * Creates a channel with a chat bot.
+   * @param friendlyName an easy to read string for the name of the channel
+   * @param uniqueName a unique string to identify the channel
+   */
   async createChannelWithBot(friendlyName: string, uniqueName: string): Promise<ChannelInstance> {
     const response = await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels
-      .create({friendlyName, uniqueName, type:'private' });
+      .create({friendlyName, uniqueName, type: 'private'});
 
     await this._twilioClient.chat.services(this._twilioChatServiceSID)
       .channels(response.sid)
