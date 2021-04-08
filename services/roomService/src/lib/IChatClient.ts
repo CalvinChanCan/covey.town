@@ -11,4 +11,5 @@ export default interface IChatClient {
    */
   getToken(playerID: string, userName: string): Promise<string>;
 
+  deleteChannel(channelSID: string): Promise<boolean>
 }
