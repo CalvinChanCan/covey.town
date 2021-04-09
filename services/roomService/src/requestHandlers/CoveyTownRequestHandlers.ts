@@ -285,8 +285,18 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
           userName: otherPlayer.userName,
         };
 
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity1));
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity2));
+        try {
+          await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity1));
+          await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity2));
+        } catch (e) {
+          return {
+            isOK: true,
+            message: 'Players are already members of channel',
+            response: {
+              uniqueName: duplicate.uniqueName,
+            },
+          };
+        }
 
         return {
           isOK: true,
