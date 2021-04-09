@@ -47,18 +47,17 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // handle leaving a channel
   const leaveChannel = async (uniqueName: string) => {
     if (client) {
-      const channel = await client.getChannelByUniqueName(uniqueName);
-      await channel.sendMessage(' has left the chat.');
-      await channel.leave();
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
       setChannels(remainingChannels);
       setTabIndex(0);
+      const channel = await client.getChannelByUniqueName(uniqueName);
+      await channel.sendMessage(' has left the chat.');
+      await channel.leave();
     }
   };
 
   // handle closing a private message
   const handleCloseButtonPrivateMessage = async (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
-
     // we are using other and current player because we want to ensure that neither player has the other on their list.
     const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
 
@@ -68,12 +67,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // Handler for channel events
   const handleChannelEvents = useCallback(async(channelClient : Client)=>{
-      channelClient.on('channelJoined', async (joinedChannel: Channel) => {
-        console.log(`chat client channelJoined event on ${joinedChannel.friendlyName} has occurred`);
-      });
 
       channelClient.on('channelInvited', async (channel: Channel) => {
-      console.log(`Invited to channel ${channel.friendlyName}`); // can become toast as user indicator
       // Join the channel that you were invited to
       await channel.join();
       await channel.sendMessage(` joined the chat.`);
@@ -101,7 +96,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       coveyTownID: currentTownID,
     })
     setTabIndex(channels.length)
-    setIsHelped(true)
+    setIsHelped(true);
     setLoading(false);
   };
 
@@ -162,7 +157,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(() => {
     const login = async () => {
-      console.log("login useEffect triggered..."); // for debug
+
       try {
         // prevents rest of function from firing off again
         // if not check channels.length, join message will send twice!
@@ -170,7 +165,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
           const main = await client.getChannelByUniqueName(currentTownID);
           setMainChannel(main);
-          console.log(mainChannel);
+
           if(mainChannel){
             if (mainChannel.status !== "joined") {
               await mainChannel.join();
@@ -222,7 +217,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   };
 
   const leaveHelpChannel = (uniqueName: string) => {
-    setIsHelped(false)
+    setIsHelped(false);
     leaveChannel(uniqueName)
   }
 
@@ -230,8 +225,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // Renders channels tabs based on channels array.
   const renderTabs = (filteredChannelList()).map(channel => {
     const {friendlyName, uniqueName} = channel;
-
-    // console.log(friendlyName);
 
     let tabName;
     try {
@@ -256,7 +249,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     } catch {
       return friendlyName === myPlayerID ? (
         <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
-          Help <CloseIcon onClick={() => leaveHelpChannel(uniqueName) }/>
+          Help <CloseIcon onClick={() => leaveHelpChannel(uniqueName)}/>
         </Tab>
       ) : (
         <Tab key={uniqueName}_selected = {{bg: "#57c994"}}>
