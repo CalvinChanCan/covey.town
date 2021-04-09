@@ -37,4 +37,13 @@ The TwilioChat Rest client allows the backend to  create new channels, invite pl
 
 
 ## Specific changes to the frontend
+We added two new functional components to the front end: `ChannelWrapper.tsx`, and `ChatScreen.tsx`.
+On the frontend, the chat component is rendered in `App.tsx` and is made up of `ChannelWrapper.tsx` which is made up of `ChatScreen.tsx` components. 
+
+## `ChannelWrapper.tsx`
+`ChannelWrapper.tsx` manages the chat channels and organizes the user interaction with our REST backend. It allows adding and leaving private chat channels with other users and the help bot, downloading a text file of a log of the main channel's messages, and switching between channels using tabs at the top. This component wraps around multiple `ChatScreen.tsx` components in TabPanels, each of which is passed a channel.
+
+
+## `ChatScreen.tsx`
+`ChatScreen.tsx` is the component that displays the chats for each channel. Each `ChatScreen.tsx` component manages its own individual chat channel's messages, including displaying and sending messages. When a player initiates a new private chat in `ChannelWrapper.tsx`, a new `ChatScreen.tsx` is rendered in a TabPanel for that chat's channel. 
 
