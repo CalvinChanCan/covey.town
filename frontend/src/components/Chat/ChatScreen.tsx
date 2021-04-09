@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState} from 'react';
 import {Channel} from 'twilio-chat/lib/channel';
-import { Button, Input, Stack, Flex, Text } from "@chakra-ui/react";
+import { Button, Input, Stack, Flex, Text, Box, Spacer, Heading } from "@chakra-ui/react";
 import {Message} from 'twilio-chat/lib/message';
 
 import Video from "../../classes/Video/Video";
 import useCoveyAppState from '../../hooks/useCoveyAppState';
+
 
 
 /**
@@ -18,6 +19,8 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   const [loading, setLoading] = useState<boolean>(false);
   const [thisChannel] = useState<Channel>(channel);
   const {myPlayerID} = useCoveyAppState();
+
+
 
 
 
@@ -122,29 +125,74 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     return (() => {});
   }, [messages.length, hasReachedBottom, scrollToBottom]);
 
+  const getMessageTime = (chat: Message) => {
+    const timeToSting = chat.dateCreated.toLocaleDateString('en-US',
+      {hour: 'numeric', minute: 'numeric', hour12: true})
+    return timeToSting.split(',')[1];
+  }
+
+  let lastAuthor = 'temp';
+  let isAuthorChanged = true;
+
   const renderMessages = messages.map(message => {
     const {author} = message;
-    const authorString = getMessageAuthor(author);
+    let authorString = getMessageAuthor(author);
+    if (lastAuthor !== authorString){
+      lastAuthor = authorString;
+      isAuthorChanged = false;
+    } else {
+      isAuthorChanged = true;
+    }
     if(author === "system"){
       return (
         <div key={message.sid} ref={endRef}>
           <b>{authorString}</b>:{message.body}
         </div>
       )
-
     }
     const authorID = JSON.parse(author).playerID;
 
     if(authorID === myPlayerID){
-      return (
-        <div key={message.sid} ref={endRef}>
-          <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
-        </div>
-      )}
+      authorString = authorString.concat('(you)');
+      // return (
+      //   <div key={message.sid} ref={endRef}>
+      //     <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
+      //   </div>
+      // )
+    }
+
     return (
-      <div key={message.sid} ref={endRef}>
-        <b>{authorString}</b>:{message.body}
-      </div>
+      <>
+        {
+          !isAuthorChanged &&
+            <>
+          <Flex key={message.sid} ref={endRef} rounded="md">
+            <Box>
+              <Heading size="sm">{authorString}</Heading>
+            </Box>
+            <Spacer/>
+            <Box>
+              {getMessageTime(message)}
+            </Box>
+          </Flex>
+          <Box flex="1" bg="blackAlpha.500" rounded="md" boxShadow="base" marginBottom="3" maxW="300px">
+          <Text margin="5">{message.body}</Text>
+          </Box>
+            </>
+        }
+        {
+          isAuthorChanged &&
+          <Box flex="1" bg="blackAlpha.500" rounded="md" boxShadow="base" marginBottom="3" maxW="300px">
+            <Text margin="5">{message.body}</Text>
+          </Box>
+        }
+
+
+        {/* <Box flex="1" bg="tomato"> */}
+        {/*  <Text><b>{authorString}</b>:{message.body}</Text> */}
+        {/* </Box> */}
+
+      </>
     )
 
   });
@@ -159,11 +207,15 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
                 overflowY="scroll"
                 flexDirection="column"
                 flexGrow={1}
-                onScroll={handleScroll}>
+                onScroll={handleScroll}
+                maxW="300px">
             <Flex flex="1 1 auto"/>
             {renderMessages}
           </Flex>
-          <Input w="90%" autoFocus
+
+          <Input w="90%"
+                 autoFocus
+                 maxW="300px"
                  name="name"
                  placeholder=""
                  autoComplete="off"
@@ -172,11 +224,26 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
                  value={text}
                  onKeyPress={event => {
                    if (event.key === "Enter") sendMessage()
+
                  }}
                  onFocus={() => Video.instance()?.pauseGame()}
                  onBlur={() => Video.instance()?.unPauseGame()}
           />
-          <Button w="10%" onClick={sendMessage} disabled={!channel || !text}>Send</Button>
+          <Button
+            w="10%"
+            onClick={sendMessage}
+            disabled={!channel || !text}
+            colorScheme="teal">
+            Send
+          </Button>
+          <div>
+            {
+              !hasReachedBottom &&
+              <Button onClick={scrollToBottom} colorScheme="teal" marginRight="2">
+                Scroll to bottom
+              </Button>
+            }
+          </div>
         </div>
       </Stack>
     </>

@@ -3,7 +3,7 @@ import Client from 'twilio-chat';
 import {Channel} from 'twilio-chat/lib/channel';
 import {
   Button, Tabs, Tab, TabList, TabPanels, TabPanel, Menu,
-  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, useToast,
+  MenuButton, MenuList, MenuOptionGroup, MenuItemOption, Flex, Box, Spacer, useToast,
 } from "@chakra-ui/react";
 import {CloseIcon} from '@chakra-ui/icons'
 import {saveAs} from 'file-saver';
@@ -337,24 +337,32 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           {renderTabScreens}
         </TabPanels>
       </Tabs>
-      <Button
-        isLoading={loading}
-        loadingText="Getting Help..."
-        onClick={createPrivateChannelWithBot}
-        isDisabled={isHelped}
-      >Help</Button>
-      <Button onClick={getTownChatLogs}>Logs</Button>
-
-      <Menu>
-        <MenuButton as={Button}>
-          Private Message
-        </MenuButton>
-        <MenuList minWidth="240px" maxHeight="400px" overflow="auto">
-          <MenuOptionGroup title="Select User To Private Message">
-            {renderPrivateMessageList}
-          </MenuOptionGroup>
-        </MenuList>
-      </Menu>
+      <Flex>
+        <Box>
+          <Menu>
+            <MenuButton as={Button} colorScheme="teal">
+              Private Message
+            </MenuButton>
+            <MenuList minWidth="240px" maxHeight="400px" overflow="auto">
+              <MenuOptionGroup title="Select User To Private Message">
+                {renderPrivateMessageList}
+              </MenuOptionGroup>
+            </MenuList>
+          </Menu>
+        </Box>
+        <Spacer/>
+        <Button onClick={getTownChatLogs} colorScheme="teal" marginRight="1">
+          Logs
+        </Button>
+        <Button
+          colorScheme="teal"
+          isLoading={loading}
+          loadingText="Getting Help..."
+          onClick={createPrivateChannelWithBot}
+          isDisabled={isHelped}>
+          Help
+        </Button>
+      </Flex>
     </>
 
   )
