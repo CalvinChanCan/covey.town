@@ -462,10 +462,6 @@ describe('TownsServiceAPIREST', () => {
     });
     it('Should should reuse an existing private chat channel with a bot', async () => {
 
-      const mockResponse = {
-        uniqueName: mockUniqueName,
-      };
-
       const testTown = await createTownForTesting(nanoid(), true);
 
       const res1 = await apiClient.joinTown({
