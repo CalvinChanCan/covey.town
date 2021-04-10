@@ -252,7 +252,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           Help <CloseIcon onClick={() => leaveHelpChannel(uniqueName)}/>
         </Tab>
       ) : (
-        <Tab key={uniqueName}_selected = {{bg: "#57c994"}}>
+        <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
           Town Chat
         </Tab>
       );
