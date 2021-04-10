@@ -31,7 +31,66 @@ To create an account and configure your local environment:
 | `TWILIO_API_KEY_SID`      | The SID of the new API key you created.       |
 | `TWILIO_API_KEY_SECRET`   | The secret for the API key you created.       |
 | `TWILIO_API_AUTH_TOKEN`   | Visible on your twilio account dashboard.     |
-| `TWILIO_CHAT_SERVICE_SID` | Create a new API key under Programmable Chat  |
+| `TWILIO_CHAT_SERVICE_SID` | Create a new API key under Programmable Chat.  |
+| `TWILIO_AUTOPILOT_URL`    | Use the Autopilot feature to create a new bot and get a URL.   |
+
+#### Getting a Twilio Chat Service SID
+
+First click on the ellipse and then on the sidebar menu, click on "Programmable Chat". 
+On the Programmable Chat Dashboard page, under "Chat Services", click the plus button to create a new Programmable Chat Service. 
+An input box will appear to ask for a friendly name for the chat service. Enter a friendly name and click the "Create" button.
+On the "Base Configuration" page, save the Service SID and set it to in your `.env` file as the `TWILIO_CHAT_SERVICE_SID`.
+![chat-1](docs/chat-1.png)
+
+
+#### Getting an Autopilot URL
+First click on the ellipse and then on the sidebar menu, click on Autopilot.
+![autopilot-1](docs/autopilot-1.png)
+
+Next, on the sidebar, click on "overview" and on the "Getting started with Autopilot" page, click on the button "Build from scratch"
+
+![autopilot-2](docs/autopilot-2.png)
+
+Enter a unique name for the bot and click on "Create bot"
+
+![autopilot-3](docs/autopilot-3.png)
+
+On the sidebar, under the bot's unique name you created, click on "Channels" and then click on "Programmable Chat"
+
+![autopilot-4](docs/autopilot-4.png)
+
+Finally, under configuration, copy the "CHAT URL" and save it in your `.env` as `TWILIO_AUTOPILOT_URL=https://channels.autopilot.twilio.com/v1/...`
+
+![autopilot-5](docs/autopilot-5.png)
+
+#### Configuring the bot
+
+On the sidebar, click on the tasks and then click on the "Add a task" button.
+
+![autopilot-6](docs/autopilot-6.png)
+
+On the task you just created, click "program". Here, you can enter in JSON format the response for the bot.
+For example, to program a response, enter a response in "say" as seen the following example:
+
+![autopilot-7](docs/autopilot-7.png)
+ 
+
+```json
+{
+	"actions": [
+		{
+			"say": "No information about you session or user data is saved."
+		}
+	]
+}
+```
+
+Click the "save" button on the bottom. Then click "Switch to train chat". Here, in the input box under "What would people say to trigger the task", we can enter the keywords for the bot to look out for. Enter the keyword trigger and click "Add sample". Repeat this for all keywords for the response we set up earlier.
+
+![autopilot-8](docs/autopilot-8.png)
+
+Finally, click the "Build model" button on the bottom to build the bot.
+
 
 ### Starting the backend
 

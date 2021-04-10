@@ -194,9 +194,9 @@ export async function townCreateHandler(requestData: TownCreateRequest): Promise
 
 export async function townDeleteHandler(requestData: TownDeleteRequest): Promise<ResponseEnvelope<Record<string, null>>> {
   const townsStore = CoveyTownsStore.getInstance();
+  const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
   const success = townsStore.deleteTown(requestData.coveyTownID, requestData.coveyTownPassword);
   if (success) {
-    const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
     if (channelID) {
       await TwilioChat.getInstance().deleteChannel(channelID);
     }
@@ -215,7 +215,15 @@ export async function townUpdateHandler(requestData: TownUpdateRequest): Promise
   if (success) {
     const channelID = townsStore.getControllerForTown(requestData.coveyTownID)?.channelID;
     if (channelID && requestData.friendlyName) {
-      await TwilioChat.getInstance().updateChannel(channelID, requestData.friendlyName);
+      const updatedChannel = await TwilioChat.getInstance().updateChannel(channelID, requestData.friendlyName);
+
+      if (updatedChannel.friendlyName !== requestData.friendlyName){
+        return {
+          isOK: false,
+          response: {},
+          message: 'The friendly name of the channel was not updated',
+        };
+      }
     }
   }
 
@@ -277,8 +285,18 @@ export async function privateChatCreateHandler(requestData: ChatCreateRequest): 
           userName: otherPlayer.userName,
         };
 
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity1));
-        await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity2));
+        try {
+          await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity1));
+          await TwilioChat.getInstance().sendInvite(duplicate.sid, JSON.stringify(identity2));
+        } catch (e) {
+          return {
+            isOK: true,
+            message: 'Players are already members of channel',
+            response: {
+              uniqueName: duplicate.uniqueName,
+            },
+          };
+        }
 
         return {
           isOK: true,

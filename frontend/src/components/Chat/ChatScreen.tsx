@@ -27,13 +27,10 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   // useEffect for message added listener
   useEffect(()=>{
 
-    console.log('calling message handler');
     const messageListener =()=>{
 
     thisChannel.on("messageAdded", (messageToAdd: Message) => {
       setMessages(old => [...old, messageToAdd]);
-      console.log("message added listener has been called.")
-      // console.log(messages);
       });
     };
     messageListener();
@@ -49,7 +46,6 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       const previousMessages = await thisChannel.getMessages();
       const mes: Message[] = previousMessages.items;
       setMessages(mes);
-      console.log(`Channel got messages ${mes}`);
     };
 
     handleChannel();
@@ -212,6 +208,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
           />
           <Button
             w="10%" onClick={sendMessage}
+            isLoading={loading}
             disabled={!channel || !text} colorScheme="teal">
             Send
           </Button>
