@@ -128,13 +128,13 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     } else {
       isAuthorChanged = true;
     }
-    // if(author === "system"){
-    //   return (
-    //     <div key={message.sid} ref={endRef}>
-    //       <b>{authorString}</b>:{message.body}
-    //     </div>
-    //   )
-    // }
+     if(author === "system"){
+       return (
+         <div key={message.sid} ref={endRef}>
+           <b>{authorString}</b>:{message.body}
+         </div>
+      )
+    }
     const authorID = JSON.parse(author).playerID;
 
     if(authorID === myPlayerID){
