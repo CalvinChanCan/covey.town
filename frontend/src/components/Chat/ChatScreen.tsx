@@ -57,10 +57,8 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     };
   }, [thisChannel]);
 
-
   // sends messages to channel
   const sendMessage = () => {
-    // console.log(messages)
     if (text && String(text).trim()) {
       setLoading(true);
 
@@ -70,7 +68,6 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       setLoading(false);
     }
   };
-
   const getMessageAuthor = (author: string) => {
     try {
       return JSON.parse(author).userName
@@ -78,10 +75,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
       return author
     }
   };
-
-
   type ChatScrollPositionsType = { [chatId: string]: number };
-
   const [
     chatScrollPositions,
     setChatScrollPositions
@@ -89,24 +83,19 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   const containerRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-
   const updateCurrentChatScrollPosition = (scrollPosition: number) => {
     setChatScrollPositions({
       ...chatScrollPositions,
       [thisChannel.sid]: scrollPosition
     });
   };
-
-  const handleScroll = (event: any) => {
+  const handleScroll = (event: any)=> {
     const scrollPosition = event.target.scrollTop;
     if (scrollPosition !== 0) {
       updateCurrentChatScrollPosition(scrollPosition);
     }
   };
-
-
   const currentRef = containerRef.current;
-
   const scrollToBottom = useCallback(() => {
     const returnValue = currentRef &&
       (currentRef.scrollTop = currentRef.scrollHeight - currentRef.clientHeight);
@@ -143,22 +132,17 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     } else {
       isAuthorChanged = true;
     }
-    if(author === "system"){
-      return (
-        <div key={message.sid} ref={endRef}>
-          <b>{authorString}</b>:{message.body}
-        </div>
-      )
-    }
+    // if(author === "system"){
+    //   return (
+    //     <div key={message.sid} ref={endRef}>
+    //       <b>{authorString}</b>:{message.body}
+    //     </div>
+    //   )
+    // }
     const authorID = JSON.parse(author).playerID;
 
     if(authorID === myPlayerID){
       authorString = authorString.concat('(you)');
-      // return (
-      //   <div key={message.sid} ref={endRef}>
-      //     <Text color='blue'><b>{`${authorString} (you)`}</b>:{message.body}</Text>
-      //   </div>
-      // )
     }
 
     return (
@@ -175,23 +159,19 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
               {getMessageTime(message)}
             </Box>
           </Flex>
-          <Box flex="1" bg="blackAlpha.500" rounded="md" boxShadow="base" marginBottom="3" maxW="300px">
-          <Text margin="5">{message.body}</Text>
+          <Box flex="1" bg="#008080"
+               rounded="md" boxShadow="base"
+               marginBottom="3" maxW="300px">
+          <Text margin="5" color="beige">{message.body} </Text>
           </Box>
             </>
         }
         {
           isAuthorChanged &&
-          <Box flex="1" bg="blackAlpha.500" rounded="md" boxShadow="base" marginBottom="3" maxW="300px">
-            <Text margin="5">{message.body}</Text>
+          <Box flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="300px" >
+            <Text margin="5" color="beige">{message.body}</Text>
           </Box>
         }
-
-
-        {/* <Box flex="1" bg="tomato"> */}
-        {/*  <Text><b>{authorString}</b>:{message.body}</Text> */}
-        {/* </Box> */}
-
       </>
     )
 
@@ -201,25 +181,26 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     <>
       <Stack >
         <div >
-          <Flex display="flex"
-                height="500px"
-                ref={containerRef}
-                overflowY="scroll"
-                flexDirection="column"
-                flexGrow={1}
-                onScroll={handleScroll}
-                maxW="300px">
+          <Flex display="flex" height="500px"
+                ref={containerRef} overflowY="scroll"
+                flexDirection="column" flexGrow={1}
+                onScroll={handleScroll} maxW="300px">
             <Flex flex="1 1 auto"/>
+            <Flex>
+              {
+                !hasReachedBottom &&
+                <Button onClick={scrollToBottom} colorScheme="red"
+                        marginRight="2" position="fixed" >
+                  Scroll to bottom
+                </Button>
+              }
+            </Flex>
             {renderMessages}
           </Flex>
-
-          <Input w="90%"
-                 autoFocus
-                 maxW="300px"
-                 name="name"
-                 placeholder=""
-                 autoComplete="off"
-                 bg = "white"
+          <Input w="90%" marginRight="1"
+                 autoFocus maxW="300px"
+                 name="name" placeholder="Type message here..."
+                 bg = "white" autoComplete="off"
                  onChange={(event) => setText(event.target.value)}
                  value={text}
                  onKeyPress={event => {
@@ -230,20 +211,10 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
                  onBlur={() => Video.instance()?.unPauseGame()}
           />
           <Button
-            w="10%"
-            onClick={sendMessage}
-            disabled={!channel || !text}
-            colorScheme="teal">
+            w="10%" onClick={sendMessage}
+            disabled={!channel || !text} colorScheme="teal">
             Send
           </Button>
-          <div>
-            {
-              !hasReachedBottom &&
-              <Button onClick={scrollToBottom} colorScheme="teal" marginRight="2">
-                Scroll to bottom
-              </Button>
-            }
-          </div>
         </div>
       </Stack>
     </>
