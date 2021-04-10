@@ -121,21 +121,20 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
 
   const renderMessages = messages.map(message => {
     const {author} = message;
-    let authorString = getMessageAuthor(author);
-    if (lastAuthor !== authorString){
-      lastAuthor = authorString;
+    let authorString = getMessageAuthor(author); // username
+    let authorID;
+    if(author === "system"){
+      authorID = "system";
+    } else {
+      authorID = JSON.parse(author).playerID;
+    }
+
+    if (lastAuthor !== authorID){
+      lastAuthor = authorID;
       isAuthorChanged = false;
     } else {
       isAuthorChanged = true;
     }
-    // if(author === "system"){
-    //   return (
-    //     <div key={message.sid} ref={endRef}>
-    //       <b>{authorString}</b>:{message.body}
-    //     </div>
-    //   )
-    // }
-    const authorID = JSON.parse(author).playerID;
 
     if(authorID === myPlayerID){
       authorString = authorString.concat('(you)');
@@ -164,7 +163,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
         }
         {
           isAuthorChanged &&
-          <Box flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="300px" >
+          <Box key={message.sid} flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="300px" >
             <Text margin="5" color="beige">{message.body}</Text>
           </Box>
         }
