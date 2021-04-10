@@ -140,8 +140,13 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const disconnect = () => {
           if(socket && mainChannel){
             socket.on("disconnect", async()=>{
+              try{
                 await mainChannel.sendMessage(`${userName} has left the chat`);
-                client?.removeAllListeners();
+                // client?.removeAllListeners();
+              }catch{
+                setLoading(true);
+              }
+                
             });
           }
 
