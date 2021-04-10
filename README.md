@@ -44,35 +44,36 @@ On the "Base Configuration" page, save the Service SID and set it to in your `.e
 
 
 #### Getting an Autopilot URL
-![autopilot-1](docs/autopilot-1.png)
-
 First click on the ellipse and then on the sidebar menu, click on Autopilot.
-
-![autopilot-2](docs/autopilot-2.png)
+![autopilot-1](docs/autopilot-1.png)
 
 Next, on the sidebar, click on "overview" and on the "Getting started with Autopilot" page, click on the button "Build from scratch"
 
-![autopilot-3](docs/autopilot-3.png)
+![autopilot-2](docs/autopilot-2.png)
 
 Enter a unique name for the bot and click on "Create bot"
 
-![autopilot-4](docs/autopilot-4.png)
+![autopilot-3](docs/autopilot-3.png)
 
 On the sidebar, under the bot's unique name you created, click on "Channels" and then click on "Programmable Chat"
 
-![autopilot-5](docs/autopilot-5.png)
+![autopilot-4](docs/autopilot-4.png)
 
 Finally, under configuration, copy the "CHAT URL" and save it in your `.env` as `TWILIO_AUTOPILOT_URL=https://channels.autopilot.twilio.com/v1/...`
 
-#### Configuring the bot
+![autopilot-5](docs/autopilot-5.png)
 
-![autopilot-6](docs/autopilot-6.png)
+#### Configuring the bot
 
 On the sidebar, click on the tasks and then click on the "Add a task" button.
 
-![autopilot-7](docs/autopilot-7.png)
+![autopilot-6](docs/autopilot-6.png)
+
 On the task you just created, click "program". Here, you can enter in JSON format the response for the bot.
-For example, to program a response, enter a response in "say" as seen the following example: 
+For example, to program a response, enter a response in "say" as seen the following example:
+
+![autopilot-7](docs/autopilot-7.png)
+ 
 
 ```json
 {
@@ -86,9 +87,9 @@ For example, to program a response, enter a response in "say" as seen the follow
 
 Click the "save" button on the bottom. Then click "Switch to train chat". Here, in the input box under "What would people say to trigger the task", we can enter the keywords for the bot to look out for. Enter the keyword trigger and click "Add sample". Repeat this for all keywords for the response we set up earlier.
 
-
-Finally, click the "Build model" button to build the bot.
 ![autopilot-8](docs/autopilot-8.png)
+
+Finally, click the "Build model" button on the bottom to build the bot.
 
 
 ### Starting the backend
