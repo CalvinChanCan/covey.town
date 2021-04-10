@@ -145,7 +145,7 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
         {
           !isAuthorChanged &&
           <>
-            <Flex key={message.sid} ref={endRef} rounded="md">
+            <Flex  maxW="90%" key={message.sid} ref={endRef} rounded="md">
               <Box>
                 <Heading size="sm">{authorString}</Heading>
               </Box>
@@ -154,16 +154,16 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
                 {getMessageTime(message)}
               </Box>
             </Flex>
-            <Box flex="1" bg="#008080"
+            <Box key={`${message.sid} ${myPlayerID}`} flex="1" bg="#008080"
               rounded="md" boxShadow="base"
-              marginBottom="3" maxW="300px">
+              marginBottom="3" maxW="90%">
               <Text margin="5" color="beige">{message.body} </Text>
             </Box>
           </>
         }
         {
           isAuthorChanged &&
-          <Box key={message.sid} flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="300px" >
+          <Box key={message.sid} flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="90%" >
             <Text margin="5" color="beige">{message.body}</Text>
           </Box>
         }
@@ -179,7 +179,7 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
           <Flex display="flex" height="500px"
             ref={containerRef} overflowY="scroll"
             flexDirection="column" flexGrow={1}
-            onScroll={handleScroll} maxW="300px">
+            onScroll={handleScroll} maxW="100%">
             <Flex flex="1 1 auto" />
             <Flex>
               {
@@ -193,7 +193,7 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
             {renderMessages}
           </Flex>
           <Input w="90%" marginRight="1"
-            autoFocus maxW="300px"
+            autoFocus maxW="90%"
             name="name" placeholder="Type message here..."
             bg="white" autoComplete="off"
             onChange={(event) => setText(event.target.value)}
