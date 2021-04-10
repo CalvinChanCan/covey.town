@@ -87,7 +87,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         setTabIndex(0);
       });
 
-  },[]);
+  },[userName]);
 
   const createPrivateChannelWithBot = async () => {
     setLoading(true);
@@ -140,7 +140,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const disconnect = () => {
           if(socket && mainChannel){
             socket.on("disconnect", async()=>{
-                await mainChannel.sendMessage(' has left the chat');
+                await mainChannel.sendMessage(`${userName} has left the chat`);
                 client?.removeAllListeners();
             });
           }
@@ -150,7 +150,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       disconnect();
 
       return (() => {});
-    }, [socket, mainChannel, client]);
+    }, [socket, mainChannel, client, userName]);
 
 
   // log into main channel on mount
@@ -171,7 +171,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
               await mainChannel.join();
             }
             addChannel(mainChannel);
-            await mainChannel.sendMessage(` has joined the main chat`);
+            await mainChannel.sendMessage(`${userName} has joined the main chat`);
           }
         }
       } catch (error) {
@@ -184,7 +184,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     return (() => {
 
     });
-  }, [client, currentTownID, channels, addChannel, mainChannel]);
+  }, [client, currentTownID, channels, addChannel, mainChannel, userName]);
 
 
   // the purpose of the function is to check if two players are both in the players list
