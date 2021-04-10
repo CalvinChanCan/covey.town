@@ -332,7 +332,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       </Tabs>
       <Flex>
         <Box>
-          <Menu>
+          <Menu placement="top">
             <MenuButton as={Button} colorScheme="teal">
               Private Message
             </MenuButton>
