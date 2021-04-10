@@ -85,8 +85,8 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
       [thisChannel.sid]: scrollPosition
     });
   };
-  const handleScroll = (event: any) => {
-    const scrollPosition = event.target.scrollTop;
+  const handleScroll = (event: React.UIEvent<HTMLDivElement> )=> {
+    const scrollPosition = (event.target as HTMLDivElement).scrollTop ;
     if (scrollPosition !== 0) {
       updateCurrentChatScrollPosition(scrollPosition);
     }
