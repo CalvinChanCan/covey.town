@@ -51,7 +51,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       setChannels(remainingChannels);
       setTabIndex(0);
       const channel = await client.getChannelByUniqueName(uniqueName);
-      await channel.sendMessage(' has left the chat.');
+      await channel.sendMessage(`${userName} has left the chat.`);
       await channel.leave();
     }
   };
@@ -71,7 +71,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       channelClient.on('channelInvited', async (channel: Channel) => {
       // Join the channel that you were invited to
       await channel.join();
-      await channel.sendMessage(` joined the chat.`);
+      await channel.sendMessage(`${userName} joined the chat.`);
       const getFirstMessage = await channel.getMessages();
 
       // Relies on the idea that the first message comes from the inviting user!
