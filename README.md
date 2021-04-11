@@ -34,6 +34,11 @@ To create an account and configure your local environment:
 | `TWILIO_CHAT_SERVICE_SID` | Create a new API key under Programmable Chat.  |
 | `TWILIO_AUTOPILOT_URL`    | Use the Autopilot feature to create a new bot and get a URL.   |
 
+If there are any issues with getting the Twilio Autopilot to work, use our pre-configured backend endpoint for your frontend client:
+
+``REACT_APP_TOWNS_SERVICE_URL=https://covey-town-chat.herokuapp.com/``
+
+
 #### Getting a Twilio Chat Service SID
 
 First click on the ellipse and then on the sidebar menu, click on "Programmable Chat". 
