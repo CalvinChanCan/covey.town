@@ -4,12 +4,7 @@ import {ChannelInstance} from 'twilio/lib/rest/chat/v2/service/channel';
 import {assert} from 'console';
 import TwilioChat from './TwilioChat';
 
-
-// controller test : destroy session should clean up channels
-// town controller object should have a channel associated with it with a sid (from ChannelInstance)
-// mock twilio response
 const twilioChat = TwilioChat.getInstance();
-
 
 describe('TwilioChat', () => {
   let friendlyName: string;

@@ -21,8 +21,7 @@
     "pack": "npm-pack-zip",
     "build:live": "nodemon --watch 'src/**/*.ts' src/server.ts",
     "format": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "demo": "ts-node src/client/ClientExamples.ts"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "keywords": [],
   "devDependencies": {

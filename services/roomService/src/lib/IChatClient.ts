@@ -10,5 +10,5 @@ export default interface IChatClient {
    * @param userName the username of the player when they entered a town
    */
   getToken(playerID: string, userName: string): Promise<string>;
-  deleteChannel(channelSID: string): Promise<boolean>
+
 }
