@@ -9,7 +9,7 @@ In planning to design for a chat feature, we had considered several options:
 2) Using a REST service to send messages between the backend and frontend.  
 3) Using Twilio Chat API
 
-We decided to use the Twilio Chat API.
+Since we're already using the Twilio Video, and the Twilio Chat is already integrated mostly integrated, we believe that this would have made it easier to implement a chat within the time-constraint of the project.
 
 ## Overview
 The Twilio Programmable Chat service has a REST API and an SDK. As best practices mentioned by the Twilio Docs, the backend service should authenticate a user token to send to the frontend client to connect to the service. The Twilio REST API is used to create, delete, update rooms, as well inviting players into a private channel. By putting this logic to the backend, we can apply our business logic and increase security to prevent the frontend client to send malicious/unauthorized usage of the chat.
