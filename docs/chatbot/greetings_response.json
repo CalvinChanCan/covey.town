@@ -1,0 +1,10 @@
+{
+  "actions": [
+    {
+      "say": "Welcome to Covey Town!!!"
+    },
+    {
+      "listen": true
+    }
+  ]
+}

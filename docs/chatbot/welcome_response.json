@@ -1,0 +1,7 @@
+{
+  "actions": [
+    {
+      "say": "Welcome to covey town! Type in the chat the following commands that I can help with: 'About', 'Move', 'Delete Town', 'Update Town', 'Send Private Message', 'Download Chat Logs'"
+    }
+  ]
+}

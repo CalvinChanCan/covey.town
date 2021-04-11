@@ -1,0 +1,7 @@
+{
+  "actions": [
+    {
+      "say": "You can move around with WASD, HJKL, or the arrow keys."
+    }
+  ]
+}

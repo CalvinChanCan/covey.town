@@ -1,0 +1,13 @@
+{
+  "actions": [
+    {
+      "say": "To send a private message to another player, move close to them."
+    },
+    {
+      "say": "Next, click the private message button, and a list of available nearby players will popup."
+    },
+    {
+      "say": "Select one of the players and you can start a private chat with them"
+    }
+  ]
+}

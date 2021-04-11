@@ -1,0 +1,13 @@
+{
+  "actions": [
+    {
+      "say": "To update a town, you must be the person who created the town. First, scroll down and click the 'Town Settings' button."
+    },
+    {
+      "say": "Then provide the town password which was shown when the town was created."
+    },
+    {
+      "say": "Finally, enter in the updated town name and click on the 'update' button"
+    }
+  ]
+}

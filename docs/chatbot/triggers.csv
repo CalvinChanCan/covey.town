@@ -1,0 +1,33 @@
+task,response,trigger
+about,about_response.json,about
+chat_log,chat_log_response.json,download chat logs
+chat_log,chat_log_response.json,download
+chat_log,chat_log_response.json,logs
+chat_log,chat_log_response.json,log
+chat_log,chat_log_response.json,chat log
+update_room,update_room_response.json,update town
+update_room,update_room_response.json,update update room
+update_room,update_room_response.json,update
+delete_room,delete_room_response.json,delete town
+delete_room,delete_room_response.json,delete
+delete_room,delete_room_response.json,delete room
+PrivateMessage,private_message_response.json,message
+PrivateMessage,private_message_response.json,private
+PrivateMessage,private_message_response.json,PM
+PrivateMessage,private_message_response.json,private message
+PrivateMessage,private_message_response.json,Send private Message
+move,move_response.json,how to move
+move,move_response.json,move
+welcome,welcome_response.json,{name} has joined the chat
+welcome,welcome_response.json,joined the chat
+welcome,welcome_response.json,has joined the chat
+welcome,welcome_response.json,help
+greeting,greetings_response.json,hi there
+greeting,greetings_response.json,hey
+greeting,greetings_response.json,yo
+greeting,greetings_response.json,what's up
+greeting,greetings_response.json,hi
+greeting,greetings_response.json,hello
+greeting,greetings_response.json,hi there
+goodbye,goodbye_response.json,{name} has left the chat
+goodbye,goodbye_response.json,has left the chat
