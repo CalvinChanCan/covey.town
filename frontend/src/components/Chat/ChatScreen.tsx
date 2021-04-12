@@ -185,7 +185,7 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
               {
                 !hasReachedBottom &&
                 <Button onClick={scrollToBottom} colorScheme="red"
-                  marginRight="2" position="fixed" >
+                  marginRight="2" position="absolute" >
                   Scroll to bottom
                 </Button>
               }
