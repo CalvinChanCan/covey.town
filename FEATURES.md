@@ -3,11 +3,11 @@
 General usage outside of a user story, but necessary to fully interact with our implementation of Covey.Town.
 Due to the use of keyboard input commands the user must click outside of the input box in the green area of the chat screen in order to continue interacting with the map once they are done typing into the chatbox and vice versa.
 
-![Alt Text](HowToUseChatBoxAndWorldMap.gif)
+![Alt Text](docs/HowToUseChatBoxAndWorldMap.gif)
 
 We assume that users understand clicking an "X" will close a chat tab and that clicking a chat tab that is unopened, but on display will switch to that chat tab.
 
-![Alt Text](ChangingTabs.gif)
+![Alt Text](docs/ChangingTabs.gif)
 
 ## User Stories
 
@@ -25,10 +25,10 @@ We assume that users understand clicking an "X" will close a chat tab and that c
 The application has an automatically created Town Chat which is the main chat room for the town. A user simply has to type into the chatbox and click send (or press the enter button) to send the message to the general chat. The chat room is visible to all users who are logged into the town.
 
 Sending Messages in the Town Chat:
-![Alt Text](PrivateMessageAndGeneralChat.gif)
+![Alt Text](docs/PrivateMessageAndGeneralChat.gif)
 
 Receiving Messages in the Town Chat:
-![Alt Text](UsingTownChatGif.gif)
+![Alt Text](docs/UsingTownChatGif.gif)
 
 ### User Story 2:
 
@@ -42,7 +42,7 @@ The ability to have a log of the public chat to refer to at a later time (does n
 
 In the menu bar beneath the chat screen, there is a button Logs. By clicking the logs button a user will download a .txt. File with the current public chat logs formatted to show when they were sent, who sent them and what was sent.
 
-![Alt Text](DownloadChatLog.gif)
+![Alt Text](docs/DownloadChatLog.gif)
 
 ### User Story 3:
 
@@ -57,7 +57,7 @@ a command legend somewhere easily visible
 
 In the menu bar beneath the main chat screen, there is a Help button. Pressing the button creates a new private chat with the automated chatbot. The chatbot greets the user and the user is able to ask questions and get answers based on what the chatbot has been trained to answer. Our chatbot supports, Insert features here.
 
-![Alt Text](BasicChatBot.gif)
+![Alt Text](docs/BasicChatBot.gif)
 
 ### User Story 4:
 
@@ -72,4 +72,4 @@ can visibly distinguish between the private message chat from main chat.
 
 In the menu bar beneath the main chat, there is a menu “Select User To Private Message”. This menu will display all users who are considered nearby. Clicking a Username from that list will create a new private message screen for the two users.
 
-![Alt Text](PrivateMessageAndGeneralChat.gif)
+![Alt Text](docs/PrivateMessageAndGeneralChat.gif)
