@@ -59,35 +59,35 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // handle closing a private message
   const handleCloseButtonPrivateMessage = async (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
     // we are using other and current player because we want to ensure that neither player has the other on their list.
-    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,currentPlayer.playerID].includes(player)));
+    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID, currentPlayer.playerID].includes(player)));
 
     setPrivateChannels(newPrivateChannels);
     await leaveChannel(uniqueName);
   };
 
   // Handler for channel events
-  const handleChannelEvents = useCallback(async(channelClient : Client)=>{
+  const handleChannelEvents = useCallback(async (channelClient: Client) => {
 
-      channelClient.on('channelInvited', async (channel: Channel) => {
+    channelClient.on('channelInvited', async (channel: Channel) => {
       // Join the channel that you were invited to
       await channel.join();
       await channel.sendMessage(`${userName} joined the chat.`);
       const getFirstMessage = await channel.getMessages();
 
       // Relies on the idea that the first message comes from the inviting user!
-      setPrivateChannels(oldUsers =>[...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
-      setChannels(oldChannels =>[...oldChannels, channel])
+      setPrivateChannels(oldUsers => [...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
+      setChannels(oldChannels => [...oldChannels, channel])
     });
 
-      channelClient.on('channelLeft', async () => {
-          setTabIndex(0);
-      });
+    channelClient.on('channelLeft', async () => {
+      setTabIndex(0);
+    });
 
-      channelClient.on('channelRemoved', async () => {
-        setTabIndex(0);
-      });
+    channelClient.on('channelRemoved', async () => {
+      setTabIndex(0);
+    });
 
-  },[userName]);
+  }, [userName]);
 
   const createPrivateChannelWithBot = async () => {
     setLoading(true);
@@ -132,30 +132,32 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     listen();
 
-    return (() => {});
+    return (() => {
+    });
   }, [client, handleChannelEvents]);
 
-    // set listener for disconnect.
-    useEffect(() => {
-      const disconnect = () => {
-          if(socket && mainChannel){
-            socket.on("disconnect", async()=>{
-              try{
-                await mainChannel.sendMessage(`${userName} has left the chat`);
-                // client?.removeAllListeners();
-              }catch{
-                setLoading(true);
-              }
-                
-            });
+  // set listener for disconnect.
+  useEffect(() => {
+    const disconnect = () => {
+      if (socket && mainChannel) {
+        socket.on("disconnect", async () => {
+          try {
+            await mainChannel.sendMessage(`${userName} has left the chat`);
+            // client?.removeAllListeners();
+          } catch {
+            setLoading(true);
           }
 
-      };
+        });
+      }
 
-      disconnect();
+    };
 
-      return (() => {});
-    }, [socket, mainChannel, client, userName]);
+    disconnect();
+
+    return (() => {
+    });
+  }, [socket, mainChannel, client, userName]);
 
 
   // log into main channel on mount
@@ -171,7 +173,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
           const main = await client.getChannelByUniqueName(currentTownID);
           setMainChannel(main);
 
-          if(mainChannel){
+          if (mainChannel) {
             if (mainChannel.status !== "joined") {
               await mainChannel.join();
             }
@@ -197,7 +199,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
     const filtered = players.filter(player => player.id === otherPlayer.playerID || player.id === currentPlayer.playerID);
 
-    return filtered.length >=2;
+    return filtered.length >= 2;
   };
 
   // creates a filtered channel list
@@ -205,12 +207,14 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     const listToFilter: Channel[] = [];
     channels.map(channel => {
       const {friendlyName} = channel;
-      try{
-        const { players: {
-          currentPlayer,
-          otherPlayer,
-        }} = JSON.parse(friendlyName);
-        if(checkPlayersExistence(currentPlayer,otherPlayer)){
+      try {
+        const {
+          players: {
+            currentPlayer,
+            otherPlayer,
+          }
+        } = JSON.parse(friendlyName);
+        if (checkPlayersExistence(currentPlayer, otherPlayer)) {
           listToFilter.push(channel)
         }
       } catch {
@@ -245,19 +249,20 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
         tabName = otherPlayer.userName;
       }
 
-        return (
-          <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
-            {`Private Message with ${tabName}`} <CloseIcon onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
-          </Tab>
-        );
+      return (
+        <Tab key={uniqueName} _selected={{bg: "#57c994"}}>
+          {`Private Message with ${tabName}`} <CloseIcon
+          onClick={() => handleCloseButtonPrivateMessage(otherPlayer, currentPlayer, uniqueName)}/>
+        </Tab>
+      );
 
     } catch {
       return friendlyName === myPlayerID ? (
-        <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
+        <Tab key={uniqueName} _selected={{bg: "#57c994"}}>
           Help <CloseIcon onClick={() => leaveHelpChannel(uniqueName)}/>
         </Tab>
       ) : (
-        <Tab key={uniqueName} _selected = {{bg: "#57c994"}}>
+        <Tab key={uniqueName} _selected={{bg: "#57c994"}}>
           Town Chat
         </Tab>
       );
@@ -268,12 +273,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const renderTabScreens = (filteredChannelList()).map(channel => {
     const {uniqueName} = channel;
 
-      return (
-        <TabPanel p={50} key={uniqueName} bg = "#57c994">
-          <ChatScreen channel={channel}/>
-        </TabPanel>
-      )
-    });
+    return (
+      <TabPanel p={50} key={uniqueName} bg="#57c994">
+        <ChatScreen channel={channel}/>
+      </TabPanel>
+    )
+  });
 
 
   // Private messaging work
@@ -309,9 +314,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const chatLog: BlobPart[] | undefined = [];
 
       // fill the array with formatted messages
-      messages.items.map(message =>(
+      messages.items.map(message => (
         chatLog.push(`${message.dateCreated}: ${JSON.parse(message.author).userName}:${message.body}\n`)
-    ));
+      ));
       // make a blob of the array, and save it.
       const blob = new Blob(chatLog, {type: "text/plain;charset=utf-8"});
       saveAs(blob, `Town_Chat_Logs.txt`);
@@ -327,7 +332,7 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   return (
     <>
-      <Tabs isManual index={tabIndex} onChange={handleTabsChange} variant = 'enclosed'>
+      <Tabs isManual index={tabIndex} onChange={handleTabsChange} variant='enclosed'>
         <TabList>
           {renderTabs}
         </TabList>

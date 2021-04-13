@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Channel } from 'twilio-chat/lib/channel';
-import { Button, Input, Stack, Flex, Text, Box, Spacer, Heading } from "@chakra-ui/react";
-import { Message } from 'twilio-chat/lib/message';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Channel} from 'twilio-chat/lib/channel';
+import {Button, Input, Stack, Flex, Text, Box, Spacer, Heading} from "@chakra-ui/react";
+import {Message} from 'twilio-chat/lib/message';
 
 import Video from "../../classes/Video/Video";
 import useCoveyAppState from '../../hooks/useCoveyAppState';
-
 
 
 /**
@@ -13,15 +12,12 @@ import useCoveyAppState from '../../hooks/useCoveyAppState';
  * @param channel The channel for this ChatScreen.
  * @returns React component that displays messages, allows input to send messages, and send button.
  */
-export default function ChatScreen({ channel }: { channel: Channel }): JSX.Element {
+export default function ChatScreen({channel}: { channel: Channel }): JSX.Element {
   const [text, setText] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [thisChannel] = useState<Channel>(channel);
-  const { myPlayerID } = useCoveyAppState();
-
-
-
+  const {myPlayerID} = useCoveyAppState();
 
 
   // useEffect for message added listener
@@ -85,8 +81,8 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
       [thisChannel.sid]: scrollPosition
     });
   };
-  const handleScroll = (event: React.UIEvent<HTMLDivElement> )=> {
-    const scrollPosition = (event.target as HTMLDivElement).scrollTop ;
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const scrollPosition = (event.target as HTMLDivElement).scrollTop;
     if (scrollPosition !== 0) {
       updateCurrentChatScrollPosition(scrollPosition);
     }
@@ -107,12 +103,13 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
       if (hasReachedBottom) scrollToBottom();
     }
     scroll();
-    return (() => { });
+    return (() => {
+    });
   }, [messages.length, hasReachedBottom, scrollToBottom]);
 
   const getMessageTime = (chat: Message) => {
     const timeToSting = chat.dateCreated.toLocaleDateString('en-US',
-      { hour: 'numeric', minute: 'numeric', hour12: true })
+      {hour: 'numeric', minute: 'numeric', hour12: true})
     return timeToSting.split(',')[1];
   }
 
@@ -120,7 +117,7 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
   let isAuthorChanged = true;
 
   const renderMessages = messages.map(message => {
-    const { author } = message;
+    const {author} = message;
     let authorString = getMessageAuthor(author); // username
     let authorID;
     if (author === "system") {
@@ -145,25 +142,26 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
         {
           !isAuthorChanged &&
           <>
-            <Flex  maxW="90%" key={message.sid} ref={endRef} rounded="md">
+            <Flex maxW="90%" key={message.sid} ref={endRef} rounded="md">
               <Box>
                 <Heading size="sm">{authorString}</Heading>
               </Box>
-              <Spacer />
+              <Spacer/>
               <Box>
                 {getMessageTime(message)}
               </Box>
             </Flex>
             <Box key={`${message.sid} ${myPlayerID}`} flex="1" bg="#008080"
-              rounded="md" boxShadow="base"
-              marginBottom="3" maxW="90%">
+                 rounded="md" boxShadow="base"
+                 marginBottom="3" maxW="90%">
               <Text margin="5" color="beige">{message.body} </Text>
             </Box>
           </>
         }
         {
           isAuthorChanged &&
-          <Box key={message.sid} flex="1" bg="#008080" rounded="md" boxShadow="base" marginBottom="3" maxW="90%" >
+          <Box key={message.sid} flex="1" bg="#008080" rounded="md" boxShadow="base"
+               marginBottom="3" maxW="90%">
             <Text margin="5" color="beige">{message.body}</Text>
           </Box>
         }
@@ -174,18 +172,18 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
 
   return (
     <>
-      <Stack >
-        <div >
+      <Stack>
+        <div>
           <Flex display="flex" height="500px"
-            ref={containerRef} overflowY="scroll"
-            flexDirection="column" flexGrow={1}
-            onScroll={handleScroll} maxW="100%">
-            <Flex flex="1 1 auto" />
+                ref={containerRef} overflowY="scroll"
+                flexDirection="column" flexGrow={1}
+                onScroll={handleScroll} maxW="100%">
+            <Flex flex="1 1 auto"/>
             <Flex>
               {
                 !hasReachedBottom &&
                 <Button onClick={scrollToBottom} colorScheme="red"
-                  marginRight="2" position="absolute" >
+                        marginRight="2" position="absolute">
                   Scroll to bottom
                 </Button>
               }
@@ -193,17 +191,17 @@ export default function ChatScreen({ channel }: { channel: Channel }): JSX.Eleme
             {renderMessages}
           </Flex>
           <Input w="90%" marginRight="1"
-            autoFocus maxW="90%"
-            name="name" placeholder="Type message here..."
-            bg="white" autoComplete="off"
-            onChange={(event) => setText(event.target.value)}
-            value={text}
-            onKeyPress={event => {
-              if (event.key === "Enter") sendMessage()
+                 autoFocus maxW="90%"
+                 name="name" placeholder="Type message here..."
+                 bg="white" autoComplete="off"
+                 onChange={(event) => setText(event.target.value)}
+                 value={text}
+                 onKeyPress={event => {
+                   if (event.key === "Enter") sendMessage()
 
-            }}
-            onFocus={() => Video.instance()?.pauseGame()}
-            onBlur={() => Video.instance()?.unPauseGame()}
+                 }}
+                 onFocus={() => Video.instance()?.pauseGame()}
+                 onBlur={() => Video.instance()?.unPauseGame()}
           />
           <Button
             w="10%" onClick={sendMessage}
