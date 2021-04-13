@@ -50,7 +50,7 @@ On the Programmable Chat Dashboard page, under "Chat Services", click the plus b
 An input box will appear to ask for a friendly name for the chat service. Enter a friendly name and click the "Create" button.
 On the "Base Configuration" page, save the Service SID and set it to in your `.env` file as the `TWILIO_CHAT_SERVICE_SID`.
 
-<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/chat-1.png" width="50%">
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/chat-1.png" width="75%">
 
 #### Getting an Autopilot URL
 First click on the ellipse and then on the sidebar menu, click on Autopilot.
@@ -59,7 +59,7 @@ First click on the ellipse and then on the sidebar menu, click on Autopilot.
 
 Next, on the sidebar, click on "overview" and on the "Getting started with Autopilot" page, click on the button "Build from scratch"
 
-<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-2.png" width="50%">
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-2.png" height="50%">
 
 Enter a unique name for the bot and click on "Create bot"
 
@@ -71,7 +71,7 @@ On the sidebar, under the bot's unique name you created, click on "Channels" and
 
 Finally, under configuration, copy the "CHAT URL" and save it in your `.env` as `TWILIO_AUTOPILOT_URL=https://channels.autopilot.twilio.com/v1/...`
 
-<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-5.png" width="50%">
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-5.png" width="75%">
 
 #### Configuring the bot
 
@@ -82,7 +82,7 @@ On the sidebar, click on the tasks and then click on the "Add a task" button.
 On the task you just created, click "program". Here, you can enter in JSON format the response for the bot.
 For example, to program a response, enter a response in "say" as seen the following example:
 
-<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-7.png" width="50%">
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-7.png" width="75%">
  
 
 ```json
