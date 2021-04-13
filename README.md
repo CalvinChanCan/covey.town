@@ -49,39 +49,40 @@ First click on the ellipse and then on the sidebar menu, click on "Programmable 
 On the Programmable Chat Dashboard page, under "Chat Services", click the plus button to create a new Programmable Chat Service. 
 An input box will appear to ask for a friendly name for the chat service. Enter a friendly name and click the "Create" button.
 On the "Base Configuration" page, save the Service SID and set it to in your `.env` file as the `TWILIO_CHAT_SERVICE_SID`.
-![chat-1](docs/chat-1.png)
 
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/chat-1.png" width="50%">
 
 #### Getting an Autopilot URL
 First click on the ellipse and then on the sidebar menu, click on Autopilot.
-![autopilot-1](docs/autopilot-1.png)
+
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-1.png" width="50%">
 
 Next, on the sidebar, click on "overview" and on the "Getting started with Autopilot" page, click on the button "Build from scratch"
 
-![autopilot-2](docs/autopilot-2.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-2.png" width="50%">
 
 Enter a unique name for the bot and click on "Create bot"
 
-![autopilot-3](docs/autopilot-3.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-3.png" width="50%">
 
 On the sidebar, under the bot's unique name you created, click on "Channels" and then click on "Programmable Chat"
 
-![autopilot-4](docs/autopilot-4.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-4.png" width="50%">
 
 Finally, under configuration, copy the "CHAT URL" and save it in your `.env` as `TWILIO_AUTOPILOT_URL=https://channels.autopilot.twilio.com/v1/...`
 
-![autopilot-5](docs/autopilot-5.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-5.png" width="50%">
 
 #### Configuring the bot
 
 On the sidebar, click on the tasks and then click on the "Add a task" button.
 
-![autopilot-6](docs/autopilot-6.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-6.png" width="50%">
 
 On the task you just created, click "program". Here, you can enter in JSON format the response for the bot.
 For example, to program a response, enter a response in "say" as seen the following example:
 
-![autopilot-7](docs/autopilot-7.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-7.png" width="50%">
  
 
 ```json
@@ -96,7 +97,7 @@ For example, to program a response, enter a response in "say" as seen the follow
 
 Click the "save" button on the bottom. Then click "Switch to train chat". Here, in the input box under "What would people say to trigger the task", we can enter the keywords for the bot to look out for. Enter the keyword trigger and click "Add sample". Repeat this for all keywords for the response we set up earlier.
 
-![autopilot-8](docs/autopilot-8.png)
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/autopilot-8.png" width="50%">
 
 Finally, click the "Build model" button on the bottom to build the bot.
 
