@@ -28,7 +28,7 @@ On the backend, we modified `CoveyTownController.ts`, the request handler `Covey
 The major additions we made were to assign a public room channel to the town, a list of private channels between two players, a list of channels that a player has with the help bot. Some changes we made were to generate a chat token as soon as a player is connecting to the town. This also allows us to clean up the private channels and help channels when a room is deleted.
 
 ### `CoveyTownRequestHandlers.ts` and `towns.ts`
-The major changes to the `CoveyTownRequestHandlers.ts` was to integrate the chat to a town more seamlessly. When a town is created, we simultaneously create a new public town channel for players to communicate in. Similarly, when the town's friendly name is updated or if the channel is deleted, we also delete the channel. Towns, we added the additional routes `/chat` and `/help` to support the creation of the new chat chnanels, one between users and another between a user and a bot. 
+The major changes to the `CoveyTownRequestHandlers.ts` was to integrate the chat to a town more seamlessly. When a town is created, we simultaneously create a new public town channel for players to communicate in. Similarly, when the town's friendly name is updated or if the channel is deleted, we also delete the channel. Towns, we added the additional routes `/chat` and `/help` to support the creation of the new chat channels, one between users and another between a user and a bot. Upon receiving these requests, we use the Twilio REST API to perform these actions.
 
 
 Other handlers we added were to create a private channel for private messaging between two players and creating a channel with a player and a help bot.
@@ -43,13 +43,13 @@ The TwilioChat Rest client allows the backend to  create new channels, invite pl
 ![Covey.Town CRC](docs/CRC.png)
 
 ## Specific changes to the frontend
-We added two new functional components to the front end: `ChannelWrapper.tsx`, and `ChatScreen.tsx`.
-On the frontend, the chat component is rendered in `App.tsx` and is made up of `ChannelWrapper.tsx` which is made up of `ChatScreen.tsx` components. 
+We added two new functional components to the front end: `ChannelWrapper.tsx` and `ChatScreen.tsx` and we updated the `TownsServiceClient.ts` to support our new backend endpoints.
 
-## `ChannelWrapper.tsx`
-`ChannelWrapper.tsx` manages the chat channels and organizes the user interaction with our REST backend. The `ChannelWrapper` takes in a token, which is generated along with the Twilio Video token. On mounting the ChannelWrapper, we use the Twilio Javascript SDK client to connect to the Twilio Chat service using that token. The ChannelWrapper uses `TownsServiceClient` to communicate with our backend to create a private message with another player and to create help bot. It also allows downloading a text file of a log of the main channel's messages, and switching between channels using tabs at the top. This component wraps around multiple `ChatScreen.tsx` components in TabPanels, each of which is passed a channel.
+On the frontend, the chat components (`ChannelWrapper.tsx`, `ChatScreen.tsx`) are rendered in `App.tsx`, where we implemented a grid to contain both the world map and the chat.
 
+### `ChannelWrapper.tsx`
+`ChannelWrapper.tsx` manages the chat channels and organizes the user interaction with our REST backend. The `ChannelWrapper` takes in a token, which is generated along with the Twilio Video token. On mounting the `ChannelWrapper`, we use the Twilio Javascript SDK client to connect to the Twilio Chat service using that token. The `ChannelWrapper` uses the  `TownsServiceClient` to communicate with our backend to create a private message with another player and to create help bot. It also allows downloading a text file of a log of the main channel's messages, and switching between channels using tabs at the top. This component wraps around multiple `ChatScreen.tsx` components in TabPanels, each of which is passed a channel.
 
-## `ChatScreen.tsx`
-`ChatScreen.tsx` is the component that displays the chats for each channel. As mentioned, the ChatScreen takes in a channel which represents the current channel that the user is viewing. Each `ChatScreen.tsx` component manages its own individual chat channel's messages, including displaying and sending messages. When a player initiates a new private chat in `ChannelWrapper.tsx`, a new `ChatScreen.tsx` is rendered in a TabPanel for that chat's channel. 
+### `ChatScreen.tsx`
+`ChatScreen.tsx` is the component that displays the chats for each channel. As mentioned, it takes in a channel which represents the current channel that the user is viewing. Each `ChatScreen.tsx` component manages its own individual messages, including displaying and sending messages. When a player initiates a new private chat in `ChannelWrapper.tsx`, a new `ChatScreen.tsx` is rendered in a TabPanel for that chat's channel. 
 
