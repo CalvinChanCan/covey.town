@@ -28,7 +28,8 @@ On the backend, we modified `CoveyTownController.ts`, the request handler `Covey
 The major additions we made were to assign a public room channel to the town, a list of private channels between two players, a list of channels that a player has with the help bot. Some changes we made were to generate a chat token as soon as a player is connecting to the town. This also allows us to clean up the private channels and help channels when a room is deleted.
 
 ### `CoveyTownRequestHandlers.ts` and `towns.ts`
-The major changes to the `CoveyTownRequestHandlers.ts` was to integrate the chat to a town more seamlessly. When a town is created, we simultaneously create a new public town channel for players to communicate in. Similarly, when the town's friendly name is updated or if the channel is deleted, we also delete the channel.
+The major changes to the `CoveyTownRequestHandlers.ts` was to integrate the chat to a town more seamlessly. When a town is created, we simultaneously create a new public town channel for players to communicate in. Similarly, when the town's friendly name is updated or if the channel is deleted, we also delete the channel. Towns, we added the additional routes `/chat` and `/help` to support the creation of the new chat chnanels, one between users and another between a user and a bot. 
+
 
 Other handlers we added were to create a private channel for private messaging between two players and creating a channel with a player and a help bot.
 
