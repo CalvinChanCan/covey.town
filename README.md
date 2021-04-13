@@ -5,7 +5,8 @@ Covey.Town was built for Northeastern's [Spring 2021 software engineering course
 You can view our reference deployment of the app at [app.covey.town](https://app.covey.town/).
 
 [comment]: <> (![Covey.Town Architecture]&#40;docs/covey-town-architecture.png&#41;)
-![Covey.Town Architecture](docs/chat-architecture.png)
+
+<img src="https://github.com/CalvinChanCan/covey.town/blob/master/docs/chat-architecture.png" width="50%">
 
 The figure above depicts the high-level architecture of Covey.Town.
 The frontend client (in the `frontend` directory of this repository) uses the [PhaserJS Game Library](https://phaser.io) to create a 2D game interface, using tilemaps and sprites.
