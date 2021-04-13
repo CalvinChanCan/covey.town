@@ -19,8 +19,6 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   const [thisChannel] = useState<Channel>(channel);
   const {myPlayerID} = useCoveyAppState();
 
-
-  // useEffect for message added listener
   useEffect(() => {
 
     const messageListener = () => {
@@ -36,7 +34,6 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   }, [thisChannel]);
 
 
-  // useEffect for initializing old messages to chatbox
   useEffect(() => {
     const handleChannel = async () => {
       const previousMessages = await thisChannel.getMessages();
@@ -49,7 +46,7 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     };
   }, [thisChannel]);
 
-  // sends messages to channel
+
   const sendMessage = () => {
     if (text && String(text).trim()) {
       setLoading(true);
@@ -62,6 +59,8 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
   };
   const getMessageAuthor = (author: string) => {
     try {
+      // To pass token a unique identity, we passed a stringified JSON of a userName and ID to get
+      // userName here.
       return JSON.parse(author).userName
     } catch {
       return author
@@ -120,6 +119,9 @@ export default function ChatScreen({channel}: { channel: Channel }): JSX.Element
     const {author} = message;
     let authorString = getMessageAuthor(author); // username
     let authorID;
+
+    // To pass token a unique identity, we passed a stringified JSON of a userName and ID to get
+    // ID here.
     if (author === "system") {
       authorID = "system";
     } else {

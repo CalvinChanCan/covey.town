@@ -26,7 +26,15 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   const [tabIndex, setTabIndex] = useState(0);
   const [isHelped, setIsHelped] = useState<boolean>(false);
   const [mainChannel, setMainChannel] = useState<Channel>();
-  const {currentTownID, currentTownFriendlyName, players, userName, myPlayerID, apiClient, socket } = useCoveyAppState();
+  const {
+    currentTownID,
+    currentTownFriendlyName,
+    players,
+    userName,
+    myPlayerID,
+    apiClient,
+    socket
+  } = useCoveyAppState();
 
   const [privateChannels, setPrivateChannels] = useState<string[]>([]);
   const toast = useToast();
@@ -44,7 +52,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     }
   }, [channels]);
 
-  // handle leaving a channel
   const leaveChannel = async (uniqueName: string) => {
     if (client) {
       const remainingChannels = channels.filter(channel1 => channel1.uniqueName !== uniqueName);
@@ -58,8 +65,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   // handle closing a private message
   const handleCloseButtonPrivateMessage = async (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }, uniqueName: string) => {
-    // we are using other and current player because we want to ensure that neither player has the other on their list.
-    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID, currentPlayer.playerID].includes(player)));
+    // Ensure that both players are removed from each other's list for private messages
+    const newPrivateChannels = privateChannels.filter(player => (![otherPlayer.playerID,
+      currentPlayer.playerID].includes(player)));
 
     setPrivateChannels(newPrivateChannels);
     await leaveChannel(uniqueName);
@@ -75,7 +83,8 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
       const getFirstMessage = await channel.getMessages();
 
       // Relies on the idea that the first message comes from the inviting user!
-      setPrivateChannels(oldUsers => [...oldUsers, JSON.parse(getFirstMessage.items[0].author).playerID]);
+      setPrivateChannels(oldUsers => [...oldUsers,
+        JSON.parse(getFirstMessage.items[0].author).playerID]);
       setChannels(oldChannels => [...oldChannels, channel])
     });
 
@@ -101,7 +110,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   };
 
 
-  // Get client object on mount.
   useEffect(() => {
     const logIn = async () => {
       setLoading(true);
@@ -122,7 +130,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
   }, [chatToken, currentTownFriendlyName]);
 
-  // set listener channel event listeners on mount.
   useEffect(() => {
     const listen = () => {
       if (client) {
@@ -136,14 +143,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     });
   }, [client, handleChannelEvents]);
 
-  // set listener for disconnect.
   useEffect(() => {
     const disconnect = () => {
       if (socket && mainChannel) {
         socket.on("disconnect", async () => {
           try {
             await mainChannel.sendMessage(`${userName} has left the chat`);
-            // client?.removeAllListeners();
           } catch {
             setLoading(true);
           }
@@ -160,8 +165,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   }, [socket, mainChannel, client, userName]);
 
 
-  // log into main channel on mount
-  // log in useEffect-to get rid of button but will trigger anytime a channel is added
   useEffect(() => {
     const login = async () => {
 
@@ -197,12 +200,12 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   // the purpose of the function is to check if two players are both in the players list
   const checkPlayersExistence = (otherPlayer: { playerID: string; }, currentPlayer: { playerID: string; }) => {
 
-    const filtered = players.filter(player => player.id === otherPlayer.playerID || player.id === currentPlayer.playerID);
+    const filtered = players.filter(player => player.id === otherPlayer.playerID ||
+      player.id === currentPlayer.playerID);
 
     return filtered.length >= 2;
   };
 
-  // creates a filtered channel list
   const filteredChannelList = () => {
     const listToFilter: Channel[] = [];
     channels.map(channel => {
@@ -281,7 +284,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
   });
 
 
-  // Private messaging work
   const createPrivateChannelFromMenu = async (currentPlayerID: string, playerToPM: Player) => {
 
     setPrivateChannels(oldUsers => [...oldUsers, playerToPM.id]);
@@ -292,11 +294,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
     });
   };
 
-
   // filter the player list to only show people not the current player
-  const filteredPlayerList = useNearbyPlayers().nearbyPlayers.filter(player => !privateChannels.includes(player.id));
-
-  // players.filter(player => player.id !== myPlayerID);
+  const filteredPlayerList = useNearbyPlayers().nearbyPlayers.filter(player =>
+    !privateChannels.includes(player.id));
 
   const renderPrivateMessageList = filteredPlayerList.map(player => (
     <MenuItemOption key={player.id} value={player.id}
@@ -305,7 +305,6 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
                     }}>{player.userName}</MenuItemOption>
   ));
 
-  // Logs Work - This could be susceptible to massive chat logs since.
   const getTownChatLogs = async () => {
     if (client && mainChannel) {
 
@@ -315,7 +314,9 @@ export default function ChannelWrapper({chatToken}: { chatToken: string }): JSX.
 
       // fill the array with formatted messages
       messages.items.map(message => (
-        chatLog.push(`${message.dateCreated}: ${JSON.parse(message.author).userName}:${message.body}\n`)
+        chatLog.push(
+          `${message.dateCreated}: ${JSON.parse(message.author).userName}:${message.body}\n`
+        )
       ));
       // make a blob of the array, and save it.
       const blob = new Blob(chatLog, {type: "text/plain;charset=utf-8"});
