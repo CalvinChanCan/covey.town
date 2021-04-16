@@ -1,5 +1,7 @@
 # Covey.Town
 
+**Github Repo**: https://github.com/CalvinChanCan/covey.town
+
 **Frontend**: https://covey-town.netlify.app/
 
 **Backend**: https://covey-town-chat.herokuapp.com/
