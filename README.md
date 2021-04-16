@@ -109,7 +109,7 @@ Click the "save" button on the bottom. Then click "Switch to train chat". Here, 
 
 Finally, click the "Build model" button on the bottom to build the bot.
 
-To recreate our exact instance of our bot, repeat the above instruction and use `docs/chatbot/triggers.csv` which has a mapping of trigger words and responses as the tasks for the bot. 
+To recreate our exact instance of our bot, repeat the above instruction and use [docs/chatbot/triggers.csv](/docs/chatbot/triggers.csv) which has a mapping of trigger words and responses as the tasks for the bot. 
 
 ### Starting the backend
 
